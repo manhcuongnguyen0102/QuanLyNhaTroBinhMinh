@@ -1,0 +1,99 @@
+﻿@model QuanLyNhaTroBinhMinh.Models.KhachO
+
+@{
+    ViewData["Title"] = "Thêm khách ở mới";
+    bool returnToContract = ViewBag.ReturnToContract == true;
+}
+
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">KHAI BÁO NHÂN KHẨU</span>
+        <h1 class="editorial-title mb-1">Thêm khách ở mới</h1>
+        <p class="editorial-subtitle mb-0">Ghi nhận thông tin căn cước công dân và gán khách vào hợp đồng thuê tương ứng.</p>
+    </div>
+    <div class="mt-4 mt-sm-0">
+        @if (returnToContract && !string.IsNullOrEmpty(Model.MaHopDong))
+        {
+            <a asp-controller="HopDong" asp-action="Details" asp-route-id="@Model.MaHopDong" class="btn btn-secondary">
+                <i class="fas fa-arrow-left fa-sm mr-2"></i>Quay lại Hợp đồng #@Model.MaHopDong
+            </a>
+        }
+        else
+        {
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left fa-sm mr-2"></i>Quay lại danh sách
+            </a>
+        }
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-7 col-lg-9">
+        <div class="card">
+            <div class="card-header">Hồ sơ định danh cư dân</div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <input type="hidden" name="returnToContract" value="@returnToContract.ToString().ToLower()" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-4 mb-4">
+                            <label asp-for="MaKhach" class="editorial-label">Mã khách *</label>
+                            <input asp-for="MaKhach" class="form-control" placeholder="VD: KH001..." required />
+                            <span asp-validation-for="MaKhach" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-group col-md-8 mb-4">
+                            <label asp-for="MaHopDong" class="editorial-label">Thuộc Hợp đồng thuê *</label>
+                            <select asp-for="MaHopDong" asp-items="ViewBag.DanhSachHopDong" class="form-control" required>
+                                <option value="">-- Chọn hợp đồng lưu trú --</option>
+                            </select>
+                            <span asp-validation-for="MaHopDong" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label asp-for="HoTen" class="editorial-label">Họ và tên khách trọ *</label>
+                        <input asp-for="HoTen" class="form-control" placeholder="VD: Nguyễn Văn An" required />
+                        <span asp-validation-for="HoTen" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6 mb-4">
+                            <label asp-for="Cccd" class="editorial-label">Số CCCD / Định danh *</label>
+                            <input asp-for="Cccd" class="form-control" placeholder="Nhập 12 chữ số CCCD..." required />
+                            <span asp-validation-for="Cccd" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-group col-md-6 mb-4">
+                            <label asp-for="SoDienThoai" class="editorial-label">Số điện thoại liên hệ</label>
+                            <input asp-for="SoDienThoai" class="form-control" placeholder="VD: 0912345678" />
+                            <span asp-validation-for="SoDienThoai" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-5">
+                        <label asp-for="DaDangKyTamTru" class="editorial-label">Trạng thái khai báo tạm trú</label>
+                        <select asp-for="DaDangKyTamTru" class="form-control">
+                            <option value="false">Chưa đăng ký tạm trú</option>
+                            <option value="true">Đã hoàn tất đăng ký tạm trú</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid #E5E7EB;">
+                        <a asp-action="Index" class="btn btn-secondary mr-3">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary btn-editorial-cta">
+                            <i class="fas fa-check fa-sm mr-2"></i>Lưu hồ sơ khách ở
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

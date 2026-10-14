@@ -1,0 +1,167 @@
+﻿@model IEnumerable<QuanLyNhaTroBinhMinh.Models.HopDong>
+
+@{
+    ViewData["Title"] = "Quản lý hợp đồng thuê";
+    string? trangThaiHienTai = ViewBag.TrangThaiHienTai as string;
+    var homNay = DateOnly.FromDateTime(DateTime.Today);
+}
+
+<!-- TẦNG 1 (TIÊU ĐỀ LỚN) & TẦNG 2 (PRIMARY CTA TƯƠNG PHẢN MẠNH NHẤT) -->
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">QUẢN LÝ LƯU TRÚ</span>
+        <h1 class="editorial-title mb-1">Hợp đồng thuê phòng</h1>
+        <p class="editorial-subtitle mb-0">Quản lý thời hạn hợp đồng, tiền đặt cọc, người đại diện và danh sách nhân khẩu đi kèm.</p>
+    </div>
+
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Create" class="btn btn-primary btn-editorial-cta">
+            <i class="fas fa-plus fa-sm mr-2"></i>Lập hợp đồng mới
+        </a>
+    </div>
+</div>
+
+@if (TempData["ThongBao"] != null)
+{
+    <div class="p-3 mb-4 bg-editorial-mint d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-check-circle mr-2"></i>@TempData["ThongBao"]</span>
+    </div>
+}
+
+<!-- TẦNG 3 - THANH LỌC TRẠNG THÁI PHẲNG & TÌM KIẾM -->
+<div class="d-lg-flex justify-content-between align-items-center mb-4">
+    <div class="editorial-filter-bar mb-3 mb-lg-0">
+        <a asp-action="Index" asp-route-trangThai=""
+           class="editorial-filter-btn @(string.IsNullOrEmpty(trangThaiHienTai) ? "active" : "")">
+            Tất cả (@ViewBag.TongHopDong)
+        </a>
+        <a asp-action="Index" asp-route-trangThai="Hiệu lực"
+           class="editorial-filter-btn @(trangThaiHienTai == "Hiệu lực" ? "active" : "")">
+            Hiệu lực (@ViewBag.DangHieuLuc)
+        </a>
+        <a asp-action="Index" asp-route-trangThai="Sắp hết hạn"
+           class="editorial-filter-btn @(trangThaiHienTai == "Sắp hết hạn" ? "active" : "")">
+            Sắp hết hạn ≤ 30 ngày (@ViewBag.SapHetHan)
+        </a>
+        <a asp-action="Index" asp-route-trangThai="Đã thanh lý"
+           class="editorial-filter-btn @(trangThaiHienTai == "Đã thanh lý" ? "active" : "")">
+            Đã thanh lý (@ViewBag.DaThanhLy)
+        </a>
+    </div>
+
+    <form asp-action="Index" method="get" class="d-flex" style="min-width: 320px;">
+        <input type="hidden" name="trangThai" value="@trangThaiHienTai" />
+        <input type="text" name="tuKhoa" value="@ViewBag.TuKhoaHienTai"
+               class="form-control mr-2" placeholder="Tìm mã HĐ, phòng, tài khoản..." />
+        <button type="submit" class="btn btn-secondary px-3">
+            <i class="fas fa-search"></i>
+        </button>
+    </form>
+</div>
+
+<!-- TẦNG 3 - BẢNG THỐNG KÊ CHUẨN SB ADMIN 2 -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Danh sách hồ sơ hợp đồng</span>
+        <span class="text-muted small">Hiển thị @Model.Count() bản ghi</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th class="cell-nowrap">Mã HĐ</th>
+                        <th class="cell-nowrap">Phòng thuê</th>
+                        <th class="cell-nowrap">Tài khoản đại diện</th>
+                        <th class="cell-nowrap">Thời hạn thuê</th>
+                        <th class="text-right cell-nowrap">Tiền cọc</th>
+                        <th class="text-center cell-nowrap">Nhân khẩu</th>
+                        <th class="text-center cell-nowrap">Trạng thái</th>
+                        <th class="text-right cell-nowrap">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                Chưa có hợp đồng nào khớp với điều kiện lọc.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            bool daThanhLy = item.TrangThai == "Đã thanh lý";
+                            bool sapHetHan = !daThanhLy && item.NgayKetThuc >= homNay && item.NgayKetThuc <= homNay.AddDays(30);
+
+                            string badgeClass = daThanhLy
+                            ? "status-badge-occupied"
+                            : (sapHetHan ? "status-badge-maintenance" : "status-badge-available");
+
+                            <tr class="@(daThanhLy ? "row-terminated" : "")">
+                                <td class="font-weight-bold cell-nowrap">
+                                    <a asp-action="Details" asp-route-id="@item.MaHopDong"
+                                       style="color: @(daThanhLy ? "#6B7280" : "#059669"); text-decoration: none;">
+                                        #@item.MaHopDong
+                                    </a>
+                                </td>
+                                <td class="cell-nowrap">
+                                    @if (item.MaPhongNavigation != null)
+                                    {
+                                        <span class="badge-editorial-mint mr-2">@item.MaPhong</span>
+                                        <span class="font-weight-bold" style="color: #111827;">@item.MaPhongNavigation.TenPhong</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa gán</span>
+                                    }
+                                </td>
+                                <td class="cell-nowrap">
+                                    @if (item.MaNguoiDungDaiDienNavigation != null)
+                                    {
+                                        <span style="color: #111827; font-weight: 600;">@item.MaNguoiDungDaiDienNavigation.TenDangNhap</span>
+                                        <small class="d-block text-muted">Mã: @item.MaNguoiDungDaiDien</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td class="cell-nowrap">
+                                    <div style="color: #111827; font-weight: 500;">
+                                        @item.NgayBatDau.ToString("dd/MM/yyyy") → @item.NgayKetThuc.ToString("dd/MM/yyyy")
+                                    </div>
+                                    @if (sapHetHan)
+                                    {
+                                        <small style="color: #B45309; font-weight: 600;">Sắp hết hạn</small>
+                                    }
+                                </td>
+                                <td class="text-right font-weight-bold cell-nowrap" style="color: #111827;">
+                                    @(item.TienCoc.HasValue ? $"{item.TienCoc.Value:N0}đ" : "0đ")
+                                </td>
+                                <td class="text-center cell-nowrap">
+                                    <a asp-action="Details" asp-route-id="@item.MaHopDong" class="badge-editorial-mint" style="text-decoration: none;">
+                                        @item.KhachOs.Count người
+                                    </a>
+                                </td>
+                                <td class="text-center cell-nowrap">
+                                    <span class="@badgeClass">@(item.TrangThai ?? "Chưa rõ")</span>
+                                </td>
+                                <td class="text-right cell-nowrap">
+                                    <a asp-action="Details" asp-route-id="@item.MaHopDong" class="btn btn-secondary btn-sm py-1 px-2 mr-1">
+                                        Chi tiết & Khách ở
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@item.MaHopDong" class="btn btn-secondary btn-sm py-1 px-2">
+                                        Sửa
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

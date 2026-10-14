@@ -37,7 +37,7 @@ public class PhongTroController : Controller
         ViewBag.TongSoPhong = allRooms.Count;
         ViewBag.SoPhongTrong = allRooms.Count(p => p.TrangThai == "Trống");
         ViewBag.SoPhongDangThue = allRooms.Count(p => p.TrangThai == "Đang thuê");
-        ViewBag.SoPhongBaoTri = allRooms.Count(p => p.TrangThai == "Bảo trì");
+        ViewBag.SoPhongBaoTri = allRooms.Count(p => p.TrangThai == "Đang sửa");
 
         ViewBag.TrangThaiHienTai = trangThai;
         ViewBag.TuKhoaHienTai = tuKhoa;

@@ -1,0 +1,145 @@
+﻿@model IEnumerable<QuanLyNhaTroBinhMinh.Models.KhachO>
+
+@{
+    ViewData["Title"] = "Khách ở & Tạm trú";
+    string? tamTruHienTai = ViewBag.TamTruHienTai as string;
+}
+
+<!-- TẦNG 1 (TIÊU ĐỀ LỚN) & TẦNG 2 (PRIMARY CTA TƯƠNG PHẢN MẠNH NHẤT) -->
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">QUẢN LÝ NHÂN KHẨU</span>
+        <h1 class="editorial-title mb-1">Khách ở & Khai báo tạm trú</h1>
+        <p class="editorial-subtitle mb-0">Theo dõi hồ sơ CCCD, số điện thoại liên hệ và tình trạng đăng ký tạm trú của toàn bộ cư dân.</p>
+    </div>
+
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Create" class="btn btn-primary btn-editorial-cta">
+            <i class="fas fa-user-plus fa-sm mr-2"></i>Thêm khách ở mới
+        </a>
+    </div>
+</div>
+
+@if (TempData["ThongBao"] != null)
+{
+    <div class="p-3 mb-4 bg-editorial-mint d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-check-circle mr-2"></i>@TempData["ThongBao"]</span>
+    </div>
+}
+
+<!-- TẦNG 3 - THANH LỌC TẠM TRÚ PHẲNG & TÌM KIẾM CCCD/SĐT -->
+<div class="d-lg-flex justify-content-between align-items-center mb-4">
+    <div class="editorial-filter-bar mb-3 mb-lg-0">
+        <a asp-action="Index" asp-route-tamTru=""
+           class="editorial-filter-btn @(string.IsNullOrEmpty(tamTruHienTai) ? "active" : "")">
+            Tất cả cư dân (@ViewBag.TongSoKhach)
+        </a>
+        <a asp-action="Index" asp-route-tamTru="DaDangKy"
+           class="editorial-filter-btn @(tamTruHienTai == "DaDangKy" ? "active" : "")">
+            Đã đăng ký tạm trú (@ViewBag.SoDaDangKy)
+        </a>
+        <a asp-action="Index" asp-route-tamTru="ChuaDangKy"
+           class="editorial-filter-btn @(tamTruHienTai == "ChuaDangKy" ? "active" : "")">
+            Chưa đăng ký tạm trú (@ViewBag.SoChuaDangKy)
+        </a>
+    </div>
+
+    <form asp-action="Index" method="get" class="d-flex" style="min-width: 320px;">
+        <input type="hidden" name="tamTru" value="@tamTruHienTai" />
+        <input type="text" name="tuKhoa" value="@ViewBag.TuKhoaHienTai"
+               class="form-control mr-2" placeholder="Tìm họ tên, CCCD, SĐT, mã HĐ..." />
+        <button type="submit" class="btn btn-secondary px-3">
+            <i class="fas fa-search"></i>
+        </button>
+    </form>
+</div>
+
+<!-- TẦNG 3 - BẢNG THỐNG KÊ KHÁCH Ở CHUẨN SB ADMIN 2 -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Danh sách nhân khẩu đang lưu trú</span>
+        <span class="text-muted small">Bấm vào nhãn Tạm trú để chuyển đổi nhanh (1-Click)</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Mã khách</th>
+                        <th>Họ và tên</th>
+                        <th>Số CCCD</th>
+                        <th>Số điện thoại</th>
+                        <th>Thuộc Hợp đồng / Phòng</th>
+                        <th class="text-center">Tạm trú (1-Click)</th>
+                        <th class="text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                Chưa có dữ liệu khách ở nào khớp với bộ lọc hiện tại.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="font-weight-bold" style="color: #111827;">@item.MaKhach</td>
+                                <td class="font-weight-bold" style="color: #111827;">@item.HoTen</td>
+                                <td><code>@item.Cccd</code></td>
+                                <td>@(string.IsNullOrEmpty(item.SoDienThoai) ? "—" : item.SoDienThoai)</td>
+                                <td>
+                                    @if (item.MaHopDongNavigation != null)
+                                    {
+                                        <a asp-controller="HopDong" asp-action="Details" asp-route-id="@item.MaHopDong"
+                                           class="badge-editorial-mint mr-1" style="text-decoration: none;">
+                                            #@item.MaHopDong
+                                        </a>
+                                        <span class="small font-weight-bold" style="color: #111827;">
+                                            @(item.MaHopDongNavigation.MaPhongNavigation?.TenPhong ?? item.MaHopDongNavigation.MaPhong)
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa gán HĐ</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <form asp-action="ToggleTamTru" asp-route-id="@item.MaKhach" method="post" class="d-inline">
+                                        @if (item.DaDangKyTamTru == true)
+                                        {
+                                            <button type="submit" class="status-badge-available" style="cursor: pointer;" title="Bấm để đổi trạng thái">
+                                                <i class="fas fa-check mr-1"></i>Đã đăng ký
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="status-badge-maintenance" style="cursor: pointer;" title="Bấm để xác nhận đã đăng ký tạm trú">
+                                                <i class="fas fa-clock mr-1"></i>Chưa đăng ký
+                                            </button>
+                                        }
+                                    </form>
+                                </td>
+                                <td class="text-right">
+                                    <a asp-action="Edit" asp-route-id="@item.MaKhach" class="btn btn-secondary btn-sm py-1 px-2 mr-2">
+                                        Sửa
+                                    </a>
+                                    <form asp-action="Delete" asp-route-id="@item.MaKhach" method="post" class="d-inline"
+                                          onsubmit="return confirm('Xác nhận xóa mềm khách ở @item.HoTen?');">
+                                        <button type="submit" class="btn btn-link btn-sm text-muted p-0" style="font-weight: 600; text-decoration: none;">
+                                            Xóa
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

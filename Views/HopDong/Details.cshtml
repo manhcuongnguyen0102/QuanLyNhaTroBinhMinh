@@ -1,0 +1,183 @@
+﻿@model QuanLyNhaTroBinhMinh.Models.HopDong
+
+@{
+    ViewData["Title"] = $"Chi tiết hợp đồng #{Model.MaHopDong}";
+}
+
+<!-- TIÊU ĐỀ & CỤM NÚT HÀNH ĐỘNG CHÍNH -->
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">HỒ SƠ LƯU TRÚ</span>
+        <h1 class="editorial-title mb-1">Hợp đồng #@Model.MaHopDong</h1>
+        <p class="editorial-subtitle mb-0">
+            Phòng: <strong style="color: #111827;">@(Model.MaPhongNavigation?.TenPhong ?? Model.MaPhong)</strong>
+            — Trạng thái: <strong style="color: #059669;">@Model.TrangThai</strong>
+        </p>
+    </div>
+
+    <div class="mt-4 mt-sm-0 d-flex align-items-center">
+        <a asp-action="Index" class="btn btn-secondary mr-2">
+            <i class="fas fa-arrow-left fa-sm mr-1"></i>Danh sách HĐ
+        </a>
+        <a asp-action="Edit" asp-route-id="@Model.MaHopDong" class="btn btn-secondary mr-2">
+            Chỉnh sửa HĐ
+        </a>
+        @if (Model.TrangThai == "Đang hiệu lực")
+        {
+            <form asp-action="ThanhLy" asp-route-id="@Model.MaHopDong" method="post" class="mr-2"
+                  onsubmit="return confirm('Xác nhận thanh lý hợp đồng #@Model.MaHopDong và trả phòng về trạng thái Trống?');">
+                <button type="submit" class="btn btn-secondary" style="color: #B45309 !important; border-color: #FDE68A !important; background-color: #FFFBEB !important;">
+                    Thanh lý hợp đồng
+                </button>
+            </form>
+        }
+        <a asp-controller="KhachO" asp-action="Create" asp-route-maHopDong="@Model.MaHopDong" class="btn btn-primary btn-editorial-cta">
+            <i class="fas fa-user-plus fa-sm mr-2"></i>Thêm khách vào hợp đồng này
+        </a>
+    </div>
+</div>
+
+
+@if (TempData["ThongBao"] != null)
+{
+    <div class="alert-editorial-danger mb-4 d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-exclamation-triangle mr-2"></i>@TempData["Loi"]</span>
+    </div>
+}
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert-editorial-danger mb-4">
+        <div class="font-weight-bold mb-1"><i class="fas fa-exclamation-circle mr-2"></i>Vui lòng kiểm tra lại các thông tin sau:</div>
+        <div asp-validation-summary="All" class="small mb-0"></div>
+    </div>
+}
+<!-- THÔNG TIN TÓM TẮT HỢP ĐỒNG (4 Ô CHỈ SỐ) -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary h-100 mb-0">
+            <div class="card-body py-3">
+                <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Phòng & Đơn giá cứng</div>
+                <div class="h4 font-weight-bold mb-0" style="color: #111827;">
+                    @(Model.MaPhongNavigation != null ? $"{Model.MaPhongNavigation.GiaThueCung:N0}đ/tháng" : "Chưa rõ")
+                </div>
+                <small class="text-muted">Mã phòng: @Model.MaPhong</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success h-100 mb-0">
+            <div class="card-body py-3">
+                <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Tiền đặt cọc</div>
+                <div class="h4 font-weight-bold mb-0" style="color: #059669;">
+                    @(Model.TienCoc.HasValue ? $"{Model.TienCoc.Value:N0}đ" : "0đ")
+                </div>
+                <small class="text-muted">Bảo đảm hợp đồng</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info h-100 mb-0">
+            <div class="card-body py-3">
+                <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Thời hạn hiệu lực</div>
+                <div class="h6 font-weight-bold mb-1" style="color: #111827;">
+                    @Model.NgayBatDau.ToString("dd/MM/yyyy") — @Model.NgayKetThuc.ToString("dd/MM/yyyy")
+                </div>
+                <small class="text-muted">Tài khoản đại diện: @(Model.MaNguoiDungDaiDienNavigation?.TenDangNhap ?? "Chưa gán")</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning h-100 mb-0">
+            <div class="card-body py-3">
+                <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Số khách đang cư trú</div>
+                <div class="h4 font-weight-bold mb-0" style="color: #111827;">
+                    @Model.KhachOs.Count <span class="text-muted" style="font-size: 0.9rem;">người</span>
+                </div>
+                <small class="text-muted">Đã ĐK tạm trú: @Model.KhachOs.Count(k => k.DaDangKyTamTru == true) người</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DANH SÁCH KHÁCH Ở TRONG HỢP ĐỒNG NÀY -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <span style="font-size: 1.05rem; font-weight: 700; color: #111827;">Danh sách thành viên cư trú trong hợp đồng #@Model.MaHopDong</span>
+            <p class="text-muted mb-0 mt-1">Bấm trực tiếp vào trạng thái tạm trú để chuyển đổi nhanh (1-Click).</p>
+        </div>
+        <a asp-controller="KhachO" asp-action="Create" asp-route-maHopDong="@Model.MaHopDong" class="btn btn-secondary btn-sm">
+            + Thêm thành viên
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Mã khách</th>
+                        <th>Họ và tên</th>
+                        <th>Số CCCD / Định danh</th>
+                        <th>Số điện thoại</th>
+                        <th class="text-center">Đăng ký tạm trú (1-Click)</th>
+                        <th class="text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.KhachOs.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                Chưa có thông tin khách ở nào trong hợp đồng này. Hãy bấm nút "+ Thêm khách vào hợp đồng này" ở góc trên.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var khach in Model.KhachOs)
+                        {
+                            <tr>
+                                <td class="font-weight-bold" style="color: #111827;">@khach.MaKhach</td>
+                                <td class="font-weight-bold" style="color: #111827;">@khach.HoTen</td>
+                                <td><code>@khach.Cccd</code></td>
+                                <td>@(string.IsNullOrEmpty(khach.SoDienThoai) ? "—" : khach.SoDienThoai)</td>
+                                <td class="text-center">
+                                    <form asp-controller="KhachO" asp-action="ToggleTamTru" asp-route-id="@khach.MaKhach" method="post" class="d-inline">
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        @if (khach.DaDangKyTamTru == true)
+                                        {
+                                            <button type="submit" class="status-badge-available" style="cursor: pointer;" title="Bấm để đổi trạng thái">
+                                                <i class="fas fa-check mr-1"></i>Đã đăng ký tạm trú
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="status-badge-maintenance" style="cursor: pointer;" title="Bấm để xác nhận đã đăng ký tạm trú">
+                                                <i class="fas fa-clock mr-1"></i>Chưa đăng ký
+                                            </button>
+                                        }
+                                    </form>
+                                </td>
+                                <td class="text-right">
+                                    <a asp-controller="KhachO" asp-action="Edit" asp-route-id="@khach.MaKhach" class="btn btn-secondary btn-sm py-1 px-2 mr-1">
+                                        Sửa
+                                    </a>
+                                    <form asp-controller="KhachO" asp-action="Delete" asp-route-id="@khach.MaKhach" method="post" class="d-inline"
+                                          onsubmit="return confirm('Xác nhận xóa mềm khách ở @khach.HoTen khỏi danh sách?');">
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        <button type="submit" class="btn btn-link btn-sm text-muted p-0" style="font-weight: 600; text-decoration: none;">
+                                            Xóa
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

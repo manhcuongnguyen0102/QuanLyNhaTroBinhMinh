@@ -1,0 +1,92 @@
+﻿@model QuanLyNhaTroBinhMinh.Models.HopDong
+
+@{
+    ViewData["Title"] = "Lập hợp đồng mới";
+}
+
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">KÝ KẾT LƯU TRÚ</span>
+        <h1 class="editorial-title mb-1">Lập hợp đồng thuê mới</h1>
+        <p class="editorial-subtitle mb-0">Hợp đồng mới sẽ tự động mang trạng thái Hiệu lực và chuyển phòng được chọn sang Đang thuê.</p>
+    </div>
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left fa-sm mr-2"></i>Quay lại danh sách
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-8 col-lg-10">
+        <div class="card">
+            <div class="card-header">Thông tin pháp lý & Thời hạn hợp đồng</div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-4 mb-4">
+                            <label asp-for="MaHopDong" class="editorial-label">Mã hợp đồng *</label>
+                            <input asp-for="MaHopDong" class="form-control" placeholder="VD: HD001, HD1026..." required />
+                            <span asp-validation-for="MaHopDong" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-group col-md-8 mb-4">
+                            <label asp-for="MaPhong" class="editorial-label">Chọn phòng đang trống *</label>
+                            <select asp-for="MaPhong" asp-items="ViewBag.DanhSachPhong" class="form-control" required>
+                                <option value="">-- Chọn phòng trống để ký hợp đồng --</option>
+                            </select>
+                            <span asp-validation-for="MaPhong" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6 mb-4">
+                            <label asp-for="NgayBatDau" class="editorial-label">Ngày bắt đầu *</label>
+                            <input asp-for="NgayBatDau" type="date" class="form-control"
+                                   value="@Model.NgayBatDau.ToString("yyyy-MM-dd")" required />
+                            <span asp-validation-for="NgayBatDau" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-group col-md-6 mb-4">
+                            <label asp-for="NgayKetThuc" class="editorial-label">Ngày kết thúc (Phải lớn hơn ngày bắt đầu) *</label>
+                            <input asp-for="NgayKetThuc" type="date" class="form-control"
+                                   value="@Model.NgayKetThuc.ToString("yyyy-MM-dd")" required />
+                            <span asp-validation-for="NgayKetThuc" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-row mb-4">
+                        <div class="form-group col-md-6 mb-4">
+                            <label asp-for="TienCoc" class="editorial-label">Tiền đặt cọc (VNĐ)</label>
+                            <input asp-for="TienCoc" type="number" step="1000" min="0" class="form-control" placeholder="VD: 3500000" />
+                            <span asp-validation-for="TienCoc" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-group col-md-6 mb-4">
+                            <label asp-for="MaNguoiDungDaiDien" class="editorial-label">Tài khoản trưởng phòng đại diện (Tùy chọn)</label>
+                            <select asp-for="MaNguoiDungDaiDien" asp-items="ViewBag.DanhSachNguoiDung" class="form-control">
+                                <option value="">-- Chưa gán tài khoản đăng nhập --</option>
+                            </select>
+                            <span asp-validation-for="MaNguoiDungDaiDien" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid #E5E7EB;">
+                        <a asp-action="Index" class="btn btn-secondary mr-3">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary btn-editorial-cta">
+                            <i class="fas fa-check fa-sm mr-2"></i>Lưu hợp đồng & Tiếp tục thêm khách
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

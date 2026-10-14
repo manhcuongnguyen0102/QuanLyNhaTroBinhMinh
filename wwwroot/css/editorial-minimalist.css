@@ -472,3 +472,38 @@ h1, .h1, .editorial-title {
     margin-bottom: 0.5rem;
     display: block;
 }
+/* ==========================================================================
+   9. CHỐNG NGẮT DÒNG (NOWRAP) & DÒNG HỢP ĐỒNG ĐÃ THANH LÝ (INACTIVE ROW)
+   ========================================================================== */
+
+/* Giữ các nhãn trạng thái, mã phòng và ô dữ liệu luôn nằm gọn trên 1 dòng */
+.status-badge-available,
+.status-badge-occupied,
+.status-badge-maintenance,
+.badge-editorial-mint {
+    white-space: nowrap !important;
+    display: inline-block !important;
+}
+
+.cell-nowrap {
+    white-space: nowrap !important;
+}
+
+/* Dòng hợp đồng Đã thanh lý / Vô hiệu hóa: Nền xám, loại bỏ toàn bộ sắc xanh */
+.table tbody tr.row-terminated {
+    background-color: #F3F4F6 !important;
+}
+
+    .table tbody tr.row-terminated td,
+    .table tbody tr.row-terminated strong,
+    .table tbody tr.row-terminated span,
+    .table tbody tr.row-terminated a:not(.btn) {
+        color: #6B7280 !important;
+    }
+
+    /* Biến các nhãn xanh (Mã phòng, Nhân khẩu) trong dòng Đã thanh lý thành màu xám */
+    .table tbody tr.row-terminated .badge-editorial-mint {
+        background-color: #E5E7EB !important;
+        color: #4B5563 !important;
+        border-color: #D1D5DB !important;
+    }
