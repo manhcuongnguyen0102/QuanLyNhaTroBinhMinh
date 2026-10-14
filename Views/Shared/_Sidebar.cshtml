@@ -1,5 +1,113 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    // Tự động lấy tên Controller hiện tại để bật trạng thái Active (Kiểu A)
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "Home";
 }
+
+<ul class="navbar-nav sidebar accordion" id="accordionSidebar">
+
+    <!-- 1. KHU VỰC THƯƠNG HIỆU (GÓC TRÊN CÙNG BÊN TRÁI) -->
+    <a class="sidebar-brand d-flex align-items-center" asp-controller="Home" asp-action="Index">
+        <div class="sidebar-brand-text">
+            <span class="sidebar-brand-title">BÌNH MINH</span>
+            <span class="sidebar-brand-subtitle">Quản lý trọ</span>
+        </div>
+    </a>
+
+    <!-- MỤC TỔNG QUAN -->
+    <div class="sidebar-heading">
+        Bàn làm việc
+    </div>
+
+    <li class="nav-item @(currentController == "Home" ? "active" : "")">
+        <a class="nav-link" asp-controller="Home" asp-action="Index">
+            <i class="fas fa-fw fa-chart-pie"></i>
+            <span>Tổng quan</span>
+        </a>
+    </li>
+
+    <!-- 2. NHÓM QUẢN LÝ LƯU TRÚ -->
+    <div class="sidebar-heading">
+        Quản lý lưu trú
+    </div>
+
+    <li class="nav-item @(currentController == "PhongTro" ? "active" : "")">
+        <a class="nav-link" asp-controller="PhongTro" asp-action="Index">
+            <i class="fas fa-fw fa-door-open"></i>
+            <span>Phòng trọ</span>
+        </a>
+    </li>
+
+    <li class="nav-item @(currentController == "HopDong" ? "active" : "")">
+        <a class="nav-link" asp-controller="HopDong" asp-action="Index">
+            <i class="fas fa-fw fa-file-signature"></i>
+            <span>Hợp đồng thuê</span>
+        </a>
+    </li>
+
+    <li class="nav-item @(currentController == "KhachO" ? "active" : "")">
+        <a class="nav-link" asp-controller="KhachO" asp-action="Index">
+            <i class="fas fa-fw fa-users"></i>
+            <span>Khách ở & Tạm trú</span>
+        </a>
+    </li>
+
+    <!-- 3. NHÓM TÀI CHÍNH & DỊCH VỤ -->
+    <div class="sidebar-heading">
+        Tài chính & Dịch vụ
+    </div>
+
+    <li class="nav-item @(currentController == "ChiSoDienNuoc" ? "active" : "")">
+        <a class="nav-link" asp-controller="ChiSoDienNuoc" asp-action="Index">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Chốt điện nước</span>
+        </a>
+    </li>
+
+    <li class="nav-item @(currentController == "DichVu" ? "active" : "")">
+        <a class="nav-link" asp-controller="DichVu" asp-action="Index">
+            <i class="fas fa-fw fa-concierge-bell"></i>
+            <span>Đơn giá dịch vụ</span>
+        </a>
+    </li>
+
+    <li class="nav-item @(currentController == "HoaDon" ? "active" : "")">
+        <a class="nav-link" asp-controller="HoaDon" asp-action="Index">
+            <i class="fas fa-fw fa-file-invoice-dollar"></i>
+            <span>Hóa đơn & Công nợ</span>
+        </a>
+    </li>
+
+    <!-- 4. NHÓM VẬN HÀNH & HỆ THỐNG -->
+    <div class="sidebar-heading">
+        Vận hành & Hệ thống
+    </div>
+
+    <li class="nav-item @(currentController == "SuCo" ? "active" : "")">
+        <a class="nav-link" asp-controller="SuCo" asp-action="Index">
+            <i class="fas fa-fw fa-tools"></i>
+            <span>Sự cố & Bảo trì</span>
+        </a>
+    </li>
+
+    <li class="nav-item @(currentController == "ThongBao" ? "active" : "")">
+        <a class="nav-link" asp-controller="ThongBao" asp-action="Index">
+            <i class="fas fa-fw fa-bullhorn"></i>
+            <span>Bảng tin thông báo</span>
+        </a>
+    </li>
+
+    <li class="nav-item @(currentController == "NguoiDung" ? "active" : "")">
+        <a class="nav-link" asp-controller="NguoiDung" asp-action="Index">
+            <i class="fas fa-fw fa-user-shield"></i>
+            <span>Tài khoản & Phân quyền</span>
+        </a>
+    </li>
+
+    <hr class="sidebar-divider d-none d-md-block mt-4">
+
+    <!-- 5. NÚT THU GỌN SIDEBAR (VUÔNG PHẲNG VIỀN MẢNH 1PX) -->
+    <div class="text-center d-none d-md-inline mt-2 mb-4">
+        <button id="sidebarToggle" title="Thu gọn / Mở rộng thanh menu"></button>
+    </div>
+
+</ul>

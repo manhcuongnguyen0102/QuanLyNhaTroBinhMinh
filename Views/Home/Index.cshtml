@@ -1,8 +1,188 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Tổng quan vận hành";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!-- =======================================================================
+     TẦNG 1 (TIÊU ĐỀ CHÍNH) & TẦNG 2 (PRIMARY CTA TƯƠNG PHẢN MẠNH NHẤT)
+     Khoảng cách dưới lớn (mb-5) để bảo toàn tỷ lệ Whitespace >= 25%
+     ======================================================================= -->
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">BÁO CÁO THÁNG @DateTime.Now.ToString("MM/yyyy")</span>
+        <h1 class="editorial-title mb-1">Tổng quan nhà trọ</h1>
+        <p class="editorial-subtitle mb-0">Theo dõi công suất phòng, công nợ hóa đơn và sự cố vận hành theo thời gian thực.</p>
+    </div>
+
+    <!-- Cụm nút hành động: Thực hiện cả 2 tác vụ, phân tách rõ chính - phụ -->
+    <div class="mt-4 mt-sm-0 d-flex align-items-center">
+        <a asp-controller="HopDong" asp-action="Create" class="btn btn-secondary mr-3">
+            <i class="fas fa-file-signature fa-sm mr-2"></i>+ Lập hợp đồng mới
+        </a>
+        <a asp-controller="HoaDon" asp-action="Create" class="btn btn-primary btn-editorial-cta">
+            <i class="fas fa-plus fa-sm mr-2"></i>Xuất hóa đơn tháng
+        </a>
+    </div>
+</div>
+
+<!-- =======================================================================
+     TẦNG 3 - PHẦN A: 4 KHỐI CHỈ SỐ THỐNG KÊ (SB ADMIN 2 GRID + VIỀN MẢNH 1PX)
+     ======================================================================= -->
+<div class="row mb-4">
+
+    <!-- Chỉ số 1: Tổng số phòng -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary h-100 mb-0">
+            <div class="card-body py-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="text-xs font-weight-bold text-uppercase text-muted" style="letter-spacing: 0.08em;">
+                        Tổng số phòng
+                    </div>
+                    <i class="fas fa-door-closed text-muted"></i>
+                </div>
+                <div class="h2 font-weight-bold mb-1" style="color: #111827; font-size: 2rem;">
+                    24 <span class="text-muted" style="font-size: 0.9rem; font-weight: 500;">phòng</span>
+                </div>
+                <div class="small text-muted">Công suất lấp đầy: <strong style="color: #059669;">87.5%</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chỉ số 2: Phòng đang trống -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success h-100 mb-0">
+            <div class="card-body py-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="text-xs font-weight-bold text-uppercase text-muted" style="letter-spacing: 0.08em;">
+                        Phòng đang trống
+                    </div>
+                    <i class="fas fa-key text-muted"></i>
+                </div>
+                <div class="h2 font-weight-bold mb-1" style="color: #059669; font-size: 2rem;">
+                    03 <span class="text-muted" style="font-size: 0.9rem; font-weight: 500;">phòng</span>
+                </div>
+                <div class="small text-muted">Sẵn sàng đón khách thuê mới</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chỉ số 3: Hóa đơn chờ thu -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info h-100 mb-0">
+            <div class="card-body py-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="text-xs font-weight-bold text-uppercase text-muted" style="letter-spacing: 0.08em;">
+                        Hóa đơn chờ thu
+                    </div>
+                    <i class="fas fa-file-invoice-dollar text-muted"></i>
+                </div>
+                <div class="h2 font-weight-bold mb-1" style="color: #111827; font-size: 2rem;">
+                    14.500.000<span style="font-size: 1rem;">đ</span>
+                </div>
+                <div class="small text-muted">Từ <strong>04 phòng</strong> chưa tất toán</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chỉ số 4: Sự cố chờ xử lý -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning h-100 mb-0">
+            <div class="card-body py-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="text-xs font-weight-bold text-uppercase text-muted" style="letter-spacing: 0.08em;">
+                        Sự cố chờ xử lý
+                    </div>
+                    <i class="fas fa-tools text-muted"></i>
+                </div>
+                <div class="h2 font-weight-bold mb-1" style="color: #111827; font-size: 2rem;">
+                    02 <span class="text-muted" style="font-size: 0.9rem; font-weight: 500;">yêu cầu</span>
+                </div>
+                <div class="small text-muted">Cần điều phối thợ kiểm tra</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- =======================================================================
+     TẦNG 3 - PHẦN B: BẢNG THỐNG KÊ SB ADMIN 2 (PHÒNG CHƯA ĐÓNG TIỀN)
+     ======================================================================= -->
+<div class="card mt-2">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <span style="font-size: 1.05rem; font-weight: 700; color: #111827;">Danh sách phòng chưa đóng tiền tháng này</span>
+            <p class="text-muted mb-0 mt-1">Theo dõi các hợp đồng còn dư nợ để nhắc lịch thanh toán đúng hạn.</p>
+        </div>
+        <a asp-controller="HoaDon" asp-action="Index" class="btn btn-secondary btn-sm">
+            Xem tất cả hóa đơn
+        </a>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Mã hóa đơn</th>
+                        <th>Phòng</th>
+                        <th>Người đại diện</th>
+                        <th>Kỳ thanh toán</th>
+                        <th class="text-right">Tổng tiền</th>
+                        <th class="text-right">Còn nợ</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="font-weight-bold" style="color: #111827;">#HD-1026-01</td>
+                        <td><span class="badge-editorial-mint">P.101</span></td>
+                        <td>Nguyễn Văn An</td>
+                        <td>Tháng 10/2026</td>
+                        <td class="text-right font-weight-bold" style="color: #111827;">3.850.000đ</td>
+                        <td class="text-right font-weight-bold" style="color: #059669;">3.850.000đ</td>
+                        <td class="text-center">
+                            <span class="small font-weight-bold" style="color: #4B5563; background: #F3F4F6; padding: 0.3rem 0.6rem; border: 1px solid #E5E7EB; border-radius: 2px;">
+                                Chưa thanh toán
+                            </span>
+                        </td>
+                        <td class="text-right">
+                            <a href="#" class="btn btn-secondary btn-sm py-1 px-3">Ghi nhận thu</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold" style="color: #111827;">#HD-1026-04</td>
+                        <td><span class="badge-editorial-mint">P.202</span></td>
+                        <td>Trần Thị Bích</td>
+                        <td>Tháng 10/2026</td>
+                        <td class="text-right font-weight-bold" style="color: #111827;">4.200.000đ</td>
+                        <td class="text-right font-weight-bold" style="color: #059669;">1.200.000đ</td>
+                        <td class="text-center">
+                            <span class="small font-weight-bold" style="color: #059669; background: #ECFDF5; padding: 0.3rem 0.6rem; border: 1px solid #A7F3D0; border-radius: 2px;">
+                                Đóng một phần
+                            </span>
+                        </td>
+                        <td class="text-right">
+                            <a href="#" class="btn btn-secondary btn-sm py-1 px-3">Ghi nhận thu</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold" style="color: #111827;">#HD-1026-07</td>
+                        <td><span class="badge-editorial-mint">P.301</span></td>
+                        <td>Lê Hoàng Nam</td>
+                        <td>Tháng 10/2026</td>
+                        <td class="text-right font-weight-bold" style="color: #111827;">3.450.000đ</td>
+                        <td class="text-right font-weight-bold" style="color: #059669;">3.450.000đ</td>
+                        <td class="text-center">
+                            <span class="small font-weight-bold" style="color: #4B5563; background: #F3F4F6; padding: 0.3rem 0.6rem; border: 1px solid #E5E7EB; border-radius: 2px;">
+                                Chưa thanh toán
+                            </span>
+                        </td>
+                        <td class="text-right">
+                            <a href="#" class="btn btn-secondary btn-sm py-1 px-3">Ghi nhận thu</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

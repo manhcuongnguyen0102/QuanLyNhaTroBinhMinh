@@ -1,0 +1,145 @@
+﻿@model IEnumerable<QuanLyNhaTroBinhMinh.Models.PhongTro>
+
+@{
+    ViewData["Title"] = "Danh mục phòng trọ";
+    string? trangThaiHienTai = ViewBag.TrangThaiHienTai as string;
+}
+
+<!-- =======================================================================
+     TẦNG 1 (TIÊU ĐỀ LỚN) & TẦNG 2 (PRIMARY CTA TƯƠNG PHẢN MẠNH NHẤT)
+     ======================================================================= -->
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">QUẢN LÝ LƯU TRÚ</span>
+        <h1 class="editorial-title mb-1">Danh mục phòng trọ</h1>
+        <p class="editorial-subtitle mb-0">Quản lý diện tích, đơn giá thuê cứng và trạng thái vận hành của từng phòng.</p>
+    </div>
+
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Create" class="btn btn-primary btn-editorial-cta">
+            <i class="fas fa-plus fa-sm mr-2"></i>Thêm phòng mới
+        </a>
+    </div>
+</div>
+
+<!-- Thông báo phản hồi thao tác -->
+@if (TempData["ThongBao"] != null)
+{
+    <div class="p-3 mb-4 bg-editorial-mint d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-check-circle mr-2"></i>@TempData["ThongBao"]</span>
+    </div>
+}
+@if (TempData["Loi"] != null)
+{
+    <div class="p-3 mb-4 d-flex justify-content-between align-items-center" style="background-color: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; border-radius: 2px;">
+        <span><i class="fas fa-exclamation-circle mr-2"></i>@TempData["Loi"]</span>
+    </div>
+}
+
+<!-- =======================================================================
+     TẦNG 3 - THANH LỌC TRẠNG THÁI & TÌM KIẾM TỐI GIẢN
+     ======================================================================= -->
+<div class="d-lg-flex justify-content-between align-items-center mb-5">
+    <!-- Bộ lọc nhanh theo trạng thái -->
+    <div class="editorial-filter-bar mb-3 mb-lg-0">
+        <a asp-action="Index" asp-route-trangThai=""
+           class="editorial-filter-btn @(string.IsNullOrEmpty(trangThaiHienTai) ? "active" : "")">
+            Tất cả (@ViewBag.TongSoPhong)
+        </a>
+        <a asp-action="Index" asp-route-trangThai="Trống"
+           class="editorial-filter-btn @(trangThaiHienTai == "Trống" ? "active" : "")">
+            Đang trống (@ViewBag.SoPhongTrong)
+        </a>
+        <a asp-action="Index" asp-route-trangThai="Đang thuê"
+           class="editorial-filter-btn @(trangThaiHienTai == "Đang thuê" ? "active" : "")">
+            Đang thuê (@ViewBag.SoPhongDangThue)
+        </a>
+        <a asp-action="Index" asp-route-trangThai="Bảo trì"
+           class="editorial-filter-btn @(trangThaiHienTai == "Bảo trì" ? "active" : "")">
+            Bảo trì (@ViewBag.SoPhongBaoTri)
+        </a>
+    </div>
+
+    <!-- Ô tìm kiếm -->
+    <form asp-action="Index" method="get" class="d-flex" style="min-width: 300px;">
+        <input type="hidden" name="trangThai" value="@trangThaiHienTai" />
+        <input type="text" name="tuKhoa" value="@ViewBag.TuKhoaHienTai"
+               class="form-control mr-2" placeholder="Tìm mã hoặc tên phòng..." />
+        <button type="submit" class="btn btn-secondary px-3">
+            <i class="fas fa-search"></i>
+        </button>
+    </form>
+</div>
+
+<!-- =======================================================================
+     TẦNG 3 - LƯỚI THẺ PHÒNG TRỌ (ROOM GRID CARDS)
+     ======================================================================= -->
+@if (!Model.Any())
+{
+    <div class="card p-5 text-center">
+        <p class="editorial-subtitle mb-3">Chưa có dữ liệu phòng trọ nào khớp với tiêu chí hiển thị.</p>
+        <div>
+            <a asp-action="Create" class="btn btn-primary btn-editorial-cta">
+                + Khởi tạo phòng đầu tiên
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            string badgeClass = item.TrangThai switch
+            {
+                "Trống" => "status-badge-available",
+                "Đang thuê" => "status-badge-occupied",
+                _ => "status-badge-maintenance"
+            };
+
+            <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                <div class="room-card">
+                    <!-- Phần đầu thẻ: Mã phòng, Tên phòng & Nhãn trạng thái -->
+                    <div class="room-card-header d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="room-card-code">MÃ: @item.MaPhong</span>
+                            <h3 class="room-card-title">@item.TenPhong</h3>
+                        </div>
+                        <span class="@badgeClass">
+                            @(string.IsNullOrEmpty(item.TrangThai) ? "Chưa rõ" : item.TrangThai)
+                        </span>
+                    </div>
+
+                    <!-- Phần thân thẻ: Đơn giá thuê cứng & Diện tích -->
+                    <div class="room-card-body">
+                        <div class="room-price-label">Giá thuê niêm yết</div>
+                        <div class="room-price-value">
+                            @item.GiaThueCung.ToString("N0")<span style="font-size: 0.9rem; font-weight: 600; color: #4B5563;"> đ/tháng</span>
+                        </div>
+
+                        <div class="room-meta-row">
+                            <span>Diện tích sử dụng</span>
+                            <strong style="color: #111827;">
+                                @(item.DienTich.HasValue ? $"{item.DienTich.Value} m²" : "Chưa cập nhật")
+                            </strong>
+                        </div>
+                    </div>
+
+                    <!-- Phần chân thẻ: Nút Chỉnh sửa & Xóa -->
+                    <div class="room-card-footer">
+                        <a asp-action="Edit" asp-route-id="@item.MaPhong" class="btn btn-secondary btn-sm py-1 px-3">
+                            <i class="fas fa-pen fa-xs mr-1"></i>Chỉnh sửa
+                        </a>
+
+                        <form asp-action="Delete" asp-route-id="@item.MaPhong" method="post"
+                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa phòng @item.TenPhong (@item.MaPhong) không?');">
+                            <button type="submit" class="btn btn-link btn-sm p-0 text-muted" style="text-decoration: none; font-weight: 600;">
+                                Xóa
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

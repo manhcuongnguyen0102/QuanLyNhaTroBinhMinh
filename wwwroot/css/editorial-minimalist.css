@@ -1,0 +1,474 @@
+﻿/* ==========================================================================
+   EDITORIAL MINIMALIST THEME (MONA HOUSE INSPIRED)
+   Font: Plus Jakarta Sans | Pure White & Emerald Green | Sharp 1px Borders
+   ========================================================================== */
+
+:root {
+    --bg-main: #FFFFFF;
+    --bg-secondary-mint: #ECFDF5;
+    --cta-emerald: #059669;
+    --cta-emerald-dark: #047857;
+    --text-primary: #111827;
+    --text-secondary: #4B5563;
+    --text-muted: #9CA3AF;
+    --border-hairline: #E5E7EB;
+}
+
+/* 1. Loại bỏ toàn bộ hiệu ứng chuyển động & đổ bóng rườm rà */
+*, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* 2. Thiết lập Typography & Nền trắng tối giản */
+body, #wrapper, #content-wrapper, #content {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    background-color: var(--bg-main) !important;
+    color: var(--text-primary) !important;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* 3. Nguyên tắc khoảng trắng (Whitespace >= 25%) */
+.container-fluid {
+    padding: 3rem 4.5rem !important;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* 4. Phân cấp thị giác 3 tầng (Visual Hierarchy) */
+/* Tầng 1: Tiêu đề chính lớn, sắc nét */
+h1, .h1, .editorial-title {
+    font-size: 2.25rem !important;
+    font-weight: 800 !important;
+    color: var(--text-primary) !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0.5rem !important;
+}
+
+/* Tầng 2: Nút hành động chính (Primary CTA) - Tương phản mạnh nhất */
+.btn-primary, .btn-editorial-cta {
+    background-color: var(--cta-emerald) !important;
+    border: 1px solid var(--cta-emerald) !important;
+    color: #FFFFFF !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    padding: 0.85rem 1.75rem !important;
+    border-radius: 2px !important;
+    letter-spacing: 0.01em;
+}
+
+    .btn-primary:hover, .btn-primary:focus, .btn-editorial-cta:hover {
+        background-color: var(--cta-emerald-dark) !important;
+        border-color: var(--cta-emerald-dark) !important;
+        color: #FFFFFF !important;
+    }
+
+/* Tầng 3: Thành phần phụ & Nút phụ giảm dần độ đậm */
+.editorial-subtitle, .text-secondary-editorial {
+    font-size: 0.95rem !important;
+    font-weight: 400 !important;
+    color: var(--text-secondary) !important;
+}
+
+.text-muted, small, .small {
+    color: var(--text-muted) !important;
+    font-size: 0.825rem !important;
+}
+
+.btn-secondary, .btn-light, .btn-outline-secondary {
+    background-color: var(--bg-main) !important;
+    border: 1px solid var(--border-hairline) !important;
+    color: var(--text-secondary) !important;
+    font-weight: 600 !important;
+    padding: 0.75rem 1.25rem !important;
+    border-radius: 2px !important;
+}
+
+/* 5. Chuẩn hóa Card & Khối thống kê SB Admin 2 (Viền mảnh 1px, góc 2px) */
+.card {
+    background-color: var(--bg-main) !important;
+    border: 1px solid var(--border-hairline) !important;
+    border-radius: 2px !important;
+    margin-bottom: 2.5rem !important;
+}
+
+.card-header {
+    background-color: var(--bg-main) !important;
+    border-bottom: 1px solid var(--border-hairline) !important;
+    padding: 1.25rem 1.75rem !important;
+    font-weight: 700 !important;
+    color: var(--text-primary) !important;
+}
+
+.card-body {
+    padding: 1.75rem !important;
+}
+
+/* Biến tấu thẻ thống kê của SB Admin 2 sang tone Xanh bạc hà (#ECFDF5) */
+.border-left-primary, .border-left-success, .border-left-info, .border-left-warning {
+    border-left: 3px solid var(--cta-emerald) !important;
+}
+
+.bg-editorial-mint, .badge-editorial-mint {
+    background-color: var(--bg-secondary-mint) !important;
+    color: var(--cta-emerald) !important;
+    border: 1px solid #A7F3D0 !important;
+    border-radius: 2px !important;
+    font-weight: 600 !important;
+    padding: 0.35rem 0.65rem !important;
+}
+
+/* 6. Bảng thống kê dữ liệu (SB Admin 2 Tables / DataTables) */
+.table {
+    color: var(--text-primary) !important;
+    border-color: var(--border-hairline) !important;
+    margin-bottom: 0 !important;
+}
+
+    .table thead th {
+        background-color: var(--bg-secondary-mint) !important;
+        color: var(--cta-emerald) !important;
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.06em !important;
+        border-bottom: 1px solid var(--border-hairline) !important;
+        border-top: none !important;
+        padding: 1rem 1.25rem !important;
+    }
+
+    .table td {
+        padding: 1.15rem 1.25rem !important;
+        vertical-align: middle !important;
+        border-top: 1px solid var(--border-hairline) !important;
+        font-size: 0.9rem !important;
+        color: var(--text-secondary) !important;
+    }
+
+.table-bordered, .table-bordered td, .table-bordered th {
+    border: 1px solid var(--border-hairline) !important;
+}
+
+/* Ô nhập liệu (Form Controls) đồng bộ góc vuông 2px */
+.form-control, .custom-select {
+    border: 1px solid var(--border-hairline) !important;
+    border-radius: 2px !important;
+    padding: 0.65rem 1rem !important;
+    color: var(--text-primary) !important;
+    height: auto !important;
+}
+
+    .form-control:focus {
+        border-color: var(--cta-emerald) !important;
+    }
+/* ==========================================================================
+   7. SIDEBAR EDITORIAL MINIMALIST (FLAT MENU & KIỂU A ACTIVE STATE)
+   ========================================================================== */
+
+.sidebar {
+    background-color: var(--bg-main) !important;
+    background-image: none !important; /* Xóa hoàn toàn gradient mặc định */
+    border-right: 1px solid var(--border-hairline) !important;
+    width: 15.5rem !important;
+}
+
+    /* Khu vực Thương hiệu (Brand Header) góc trên cùng bên trái */
+.sidebar .sidebar-brand {
+        height: 4.5rem !important;
+        padding: 0 1.5rem !important;
+        border-bottom: 1px solid var(--border-hairline) !important;
+        justify-content: flex-start !important;
+        text-align: left !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+}
+
+.sidebar-brand-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    display: block;
+}
+
+.sidebar-brand-subtitle {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--cta-emerald);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: block;
+    margin-top: 0.2rem;
+}
+
+/* Tiêu đề phân nhóm (Flat Menu Headings) */
+.sidebar .sidebar-heading {
+    color: var(--text-muted) !important;
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    padding: 1.5rem 1.5rem 0.5rem 1.5rem !important;
+}
+
+/* Mục menu tiêu chuẩn */
+.sidebar .nav-item .nav-link {
+    color: var(--text-secondary) !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    padding: 0.75rem 1.5rem !important;
+    width: 100% !important;
+    border-left: 3px solid transparent !important;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar .nav-item .nav-link i {
+        color: var(--text-muted) !important;
+        font-size: 0.9rem !important;
+        width: 1.5rem;
+        margin-right: 0.5rem !important;
+        text-align: left;
+    }
+
+    /* Hover tối giản (Không dịch chuyển, chỉ làm rõ nét chữ) */
+.sidebar .nav-item .nav-link:hover {
+        color: var(--text-primary) !important;
+        background-color: #FAFAFA !important;
+    }
+
+.sidebar .nav-item .nav-link:hover i {
+            color: var(--text-primary) !important;
+        }
+
+/* Trạng thái Đang chọn (Active State - Kiểu A chuẩn MONA House) */
+.sidebar .nav-item.active .nav-link {
+    background-color: var(--bg-secondary-mint) !important;
+    color: var(--cta-emerald) !important;
+    font-weight: 700 !important;
+    border-left: 3px solid var(--cta-emerald) !important;
+}
+
+.sidebar .nav-item.active .nav-link i {
+        color: var(--cta-emerald) !important;
+}
+
+/* Đường kẻ phân cách mảnh */
+.sidebar hr.sidebar-divider {
+    border-top: 1px solid var(--border-hairline) !important;
+    margin: 0.75rem 1.5rem !important;
+}
+
+/* Nút thu gọn Sidebar (Làm phẳng thành hình vuông viền mảnh 1px) */
+.sidebar #sidebarToggle {
+    width: 2.25rem !important;
+    height: 2.25rem !important;
+    background-color: var(--bg-main) !important;
+    border: 1px solid var(--border-hairline) !important;
+    border-radius: 2px !important;
+    cursor: pointer;
+}
+
+    .sidebar #sidebarToggle::after {
+        color: var(--text-secondary) !important;
+        font-weight: 900;
+    }
+
+    .sidebar #sidebarToggle:hover {
+        background-color: var(--bg-secondary-mint) !important;
+        border-color: var(--cta-emerald) !important;
+    }
+
+        .sidebar #sidebarToggle:hover::after {
+            color: var(--cta-emerald) !important;
+        }
+
+/* Xử lý hiển thị gọn gàng khi người dùng bấm nút thu nhỏ Sidebar */
+.sidebar.toggled {
+    width: 6.5rem !important;
+}
+
+    .sidebar.toggled .sidebar-brand {
+        justify-content: center !important;
+        padding: 0 0.5rem !important;
+        text-align: center !important;
+    }
+
+    .sidebar.toggled .sidebar-brand-title {
+        font-size: 0.85rem;
+    }
+
+    .sidebar.toggled .sidebar-brand-subtitle {
+        display: none;
+    }
+
+    .sidebar.toggled .sidebar-heading {
+        text-align: center !important;
+        padding: 1rem 0.25rem 0.5rem 0.25rem !important;
+        font-size: 0.6rem !important;
+    }
+
+    .sidebar.toggled .nav-item .nav-link {
+        text-align: center !important;
+        padding: 0.75rem 0.5rem !important;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+        .sidebar.toggled .nav-item .nav-link i {
+            margin-right: 0 !important;
+            margin-bottom: 0.25rem !important;
+            text-align: center;
+            width: auto;
+        }
+/* ==========================================================================
+   8. ROOM GRID CARDS & FILTER TABS (MODULE PHÒNG TRỌ)
+   ========================================================================== */
+
+/* Thanh lọc trạng thái phẳng (Filter Tabs) */
+.editorial-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.editorial-filter-btn {
+    background-color: var(--bg-main);
+    border: 1px solid var(--border-hairline);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.6rem 1.25rem;
+    border-radius: 2px;
+    text-decoration: none !important;
+}
+
+    .editorial-filter-btn:hover {
+        color: var(--text-primary);
+        border-color: var(--text-secondary);
+    }
+
+    .editorial-filter-btn.active {
+        background-color: var(--bg-secondary-mint);
+        border-color: var(--cta-emerald);
+        color: var(--cta-emerald);
+        font-weight: 700;
+    }
+
+/* Thẻ Phòng trọ (Room Grid Card) - Viền mảnh 1px, Không hiệu ứng di chuyển */
+.room-card {
+    background-color: var(--bg-main);
+    border: 1px solid var(--border-hairline);
+    border-radius: 2px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.room-card-header {
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-hairline);
+}
+
+.room-card-code {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.room-card-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    margin: 0.25rem 0 0 0;
+}
+
+.room-card-body {
+    padding: 1.5rem;
+    flex-grow: 1;
+}
+
+.room-price-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.room-price-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+}
+
+.room-meta-row {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--border-hairline);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.room-card-footer {
+    padding: 1rem 1.5rem;
+    background-color: #FAFAFA;
+    border-top: 1px solid var(--border-hairline);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Nhãn trạng thái phòng (Status Badges) */
+.status-badge-available {
+    background-color: var(--bg-secondary-mint);
+    color: var(--cta-emerald);
+    border: 1px solid #A7F3D0;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 2px;
+}
+
+.status-badge-occupied {
+    background-color: #F3F4F6;
+    color: var(--text-primary);
+    border: 1px solid #D1D5DB;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 2px;
+}
+
+.status-badge-maintenance {
+    background-color: #FFFBEB;
+    color: #B45309;
+    border: 1px solid #FDE68A;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 2px;
+}
+
+/* Nhãn biểu mẫu (Form Labels) chuẩn Editorial */
+.editorial-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    display: block;
+}

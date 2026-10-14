@@ -1,5 +1,39 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
+﻿<nav class="navbar navbar-expand navbar-light bg-white topbar static-top" style="border-bottom: 1px solid #E5E7EB; height: 4.5rem; padding: 0 4.5rem;">
+
+    <!-- Nút thu gọn menu trên màn hình nhỏ -->
+    <button id="sidebarToggleTop" class="btn btn-link d-md-none mr-3" style="color: #111827;">
+        <i class="fa fa-bars"></i>
+    </button>
+
+    <!-- Định danh khu trọ tối giản bên trái -->
+    <div class="d-none d-sm-inline-block">
+        <span class="badge-editorial-mint mr-2">HỆ THỐNG VẬN HÀNH</span>
+        <span class="text-muted">Cơ sở: Nhà trọ Bình Minh</span>
+    </div>
+
+    <!-- Khu vực tài khoản bên phải -->
+    <ul class="navbar-nav ml-auto align-items-center">
+        <li class="nav-item dropdown no-arrow">
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding: 0;">
+                <div class="text-right mr-3 d-none d-lg-block">
+                    <div style="font-size: 0.875rem; font-weight: 700; color: #111827; line-height: 1.2;">Quản trị viên</div>
+                    <small class="text-muted">Chủ cơ sở</small>
+                </div>
+                <div class="d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background-color: #ECFDF5; border: 1px solid #A7F3D0; color: #059669; font-weight: 700; border-radius: 2px;">
+                    BM
+                </div>
+            </a>
+            <!-- Menu thả xuống phẳng, viền mảnh -->
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown" style="border: 1px solid #E5E7EB; border-radius: 2px; margin-top: 0.5rem;">
+                <a class="dropdown-item py-2" href="#" style="font-size: 0.875rem; color: #4B5563;">
+                    <i class="fas fa-user fa-sm fa-fw mr-2 text-muted"></i> Hồ sơ cá nhân
+                </a>
+                <div class="dropdown-divider" style="border-top: 1px solid #E5E7EB;"></div>
+                <a class="dropdown-item py-2" href="#" style="font-size: 0.875rem; color: #059669; font-weight: 600;">
+                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2"></i> Đăng xuất
+                </a>
+            </div>
+        </li>
+    </ul>
+
+</nav>
