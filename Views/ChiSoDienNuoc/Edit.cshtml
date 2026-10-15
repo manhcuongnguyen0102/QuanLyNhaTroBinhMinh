@@ -1,0 +1,93 @@
+﻿@model QuanLyNhaTroBinhMinh.Models.ChiSoDienNuoc
+
+@{
+    ViewData["Title"] = "Chỉnh sửa chỉ số điện nước";
+}
+
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">ĐIỀU CHỈNH CHỈ SỐ</span>
+        <h1 class="editorial-title mb-1">Sửa phiếu chốt #@Model.MaChiSo</h1>
+        <p class="editorial-subtitle mb-0">Phòng: @Model.MaPhong — Kỳ: Tháng @(Model.Thang?.ToString("D2"))/@Model.Nam</p>
+    </div>
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left fa-sm mr-2"></i>Quay lại danh sách
+        </a>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert-editorial-danger mb-4"
+         style="background-color: #FEF2F2; border: 1px solid #F87171; color: #991B1B; padding: 1rem 1.25rem; border-radius: 2px; font-weight: 600;">
+        <div asp-validation-summary="All" class="small mb-0"></div>
+    </div>
+}
+
+<div class="row">
+    <div class="col-xl-8 col-lg-10">
+        <div class="card">
+            <div class="card-header">Hồ sơ chốt đồng hồ — Mã: @Model.MaChiSo</div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post">
+                    <div class="form-row">
+                        <div class="form-group col-md-3 mb-4">
+                            <label asp-for="MaChiSo" class="editorial-label">Mã phiếu (Cố định)</label>
+                            <input asp-for="MaChiSo" class="form-control" readonly style="background-color: #F9FAFB !important;" />
+                        </div>
+
+                        <div class="form-group col-md-5 mb-4">
+                            <label asp-for="MaPhong" class="editorial-label">Phòng trọ *</label>
+                            <select asp-for="MaPhong" asp-items="ViewBag.DanhSachPhong" class="form-control" required></select>
+                        </div>
+
+                        <div class="form-group col-md-2 mb-4">
+                            <label asp-for="Thang" class="editorial-label">Tháng *</label>
+                            <input asp-for="Thang" type="number" min="1" max="12" class="form-control" required />
+                        </div>
+
+                        <div class="form-group col-md-2 mb-4">
+                            <label asp-for="Nam" class="editorial-label">Năm *</label>
+                            <input asp-for="Nam" type="number" min="2020" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6 mb-4">
+                            <label asp-for="DienCu" class="editorial-label">Chỉ số Điện cũ (kWh) *</label>
+                            <input asp-for="DienCu" type="number" min="0" class="form-control" required />
+                        </div>
+                        <div class="form-group col-md-6 mb-4">
+                            <label asp-for="DienMoi" class="editorial-label">Chỉ số Điện mới (≥ Điện cũ) *</label>
+                            <input asp-for="DienMoi" type="number" min="0" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6 mb-4">
+                            <label asp-for="NuocCu" class="editorial-label">Chỉ số Nước cũ (Khối) *</label>
+                            <input asp-for="NuocCu" type="number" min="0" class="form-control" required />
+                        </div>
+                        <div class="form-group col-md-6 mb-4">
+                            <label asp-for="NuocMoi" class="editorial-label">Chỉ số Nước mới (≥ Nước cũ) *</label>
+                            <input asp-for="NuocMoi" type="number" min="0" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-5">
+                        <label asp-for="AnhDongHo" class="editorial-label">Ghi chú / Ảnh đồng hồ</label>
+                        <input asp-for="AnhDongHo" class="form-control" />
+                    </div>
+
+                    <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid #E5E7EB;">
+                        <a asp-action="Index" class="btn btn-secondary mr-3">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary btn-editorial-cta">
+                            <i class="fas fa-save fa-sm mr-2"></i>Lưu thay đổi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

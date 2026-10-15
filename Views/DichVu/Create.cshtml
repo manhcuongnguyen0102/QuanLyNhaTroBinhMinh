@@ -1,0 +1,78 @@
+﻿@model QuanLyNhaTroBinhMinh.Models.DichVu
+
+@{
+    ViewData["Title"] = "Thêm dịch vụ mới";
+}
+
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">THIẾT LẬP ĐƠN GIÁ</span>
+        <h1 class="editorial-title mb-1">Thêm dịch vụ mới</h1>
+        <p class="editorial-subtitle mb-0">Khai báo các khoản phí cố định hàng tháng như Wifi, Vệ sinh, Rác, Gửi xe...</p>
+    </div>
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left fa-sm mr-2"></i>Quay lại danh sách
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-7 col-lg-9">
+        <div class="card">
+            <div class="card-header">Thông tin dịch vụ & Đơn giá</div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-5 mb-4">
+                            <label asp-for="MaDichVu" class="editorial-label">Mã dịch vụ *</label>
+                            <input asp-for="MaDichVu" class="form-control" placeholder="VD: DV_RAC, DV_GUIXE..." required />
+                            <span asp-validation-for="MaDichVu" class="text-danger small font-weight-bold"></span>
+                        </div>
+
+                        <div class="form-group col-md-7 mb-4">
+                            <label asp-for="TenDichVu" class="editorial-label">Tên dịch vụ *</label>
+                            <input asp-for="TenDichVu" class="form-control" placeholder="VD: Vệ sinh & Rác thải" required />
+                            <span asp-validation-for="TenDichVu" class="text-danger small font-weight-bold"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6 mb-4">
+                            <label asp-for="DonGia" class="editorial-label">Đơn giá (VNĐ) *</label>
+                            <input asp-for="DonGia" type="number" step="1000" min="0" class="form-control" placeholder="VD: 50000" required />
+                            <span asp-validation-for="DonGia" class="text-danger small font-weight-bold"></span>
+                        </div>
+
+                        <div class="form-group col-md-6 mb-4">
+                            <label asp-for="DonViTinh" class="editorial-label">Đơn vị tính *</label>
+                            <input asp-for="DonViTinh" class="form-control" placeholder="VD: Tháng, Phòng, Xe..." required />
+                            <span asp-validation-for="DonViTinh" class="text-danger small font-weight-bold"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-5">
+                        <label asp-for="LaCoDinh" class="editorial-label">Cách thức tính tiền khi xuất hóa đơn</label>
+                        <select asp-for="LaCoDinh" class="form-control">
+                            <option value="true">Phí cố định hàng tháng (Tự động nhân Số lượng = 1)</option>
+                            <option value="false">Tính theo chỉ số đồng hồ (Chỉ dùng cho Điện / Nước)</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid #E5E7EB;">
+                        <a asp-action="Index" class="btn btn-secondary mr-3">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary btn-editorial-cta">
+                            <i class="fas fa-check fa-sm mr-2"></i>Lưu dịch vụ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

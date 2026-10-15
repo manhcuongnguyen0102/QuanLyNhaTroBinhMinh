@@ -1,0 +1,151 @@
+﻿@model IEnumerable<QuanLyNhaTroBinhMinh.Models.HoaDon>
+
+@{
+    ViewData["Title"] = "Hóa đơn & Công nợ";
+    string? trangThaiHienTai = ViewBag.TrangThaiHienTai as string;
+}
+
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">TÀI CHÍNH & CÔNG NỢ</span>
+        <h1 class="editorial-title mb-1">Hóa đơn & Theo dõi thu tiền</h1>
+        <p class="editorial-subtitle mb-0">Quản lý hóa đơn hàng tháng, theo dõi tiến độ thu tiền từng phần và dư nợ còn lại của từng phòng.</p>
+    </div>
+
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Create" class="btn btn-primary btn-editorial-cta">
+            <i class="fas fa-magic fa-sm mr-2"></i>+ Xuất hóa đơn tự động
+        </a>
+    </div>
+</div>
+
+@if (TempData["ThongBao"] != null)
+{
+    <div class="p-3 mb-4 bg-editorial-mint d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-check-circle mr-2"></i>@TempData["ThongBao"]</span>
+    </div>
+}
+@if (TempData["Loi"] != null)
+{
+    <div class="alert-editorial-danger mb-4 d-flex justify-content-between align-items-center"
+         style="background-color: #FEF2F2; border: 1px solid #F87171; color: #991B1B; padding: 1rem 1.25rem; border-radius: 2px; font-weight: 600;">
+        <span><i class="fas fa-exclamation-triangle mr-2" style="color: #DC2626;"></i>@TempData["Loi"]</span>
+    </div>
+}
+
+<!-- THANH LỌC TRẠNG THÁI HÓA ĐƠN PHẲNG -->
+<div class="d-lg-flex justify-content-between align-items-center mb-4">
+    <div class="editorial-filter-bar mb-3 mb-lg-0">
+        <a asp-action="Index" asp-route-trangThai=""
+           class="editorial-filter-btn @(string.IsNullOrEmpty(trangThaiHienTai) ? "active" : "")">
+            Tất cả (@ViewBag.TongHoaDon)
+        </a>
+        <a asp-action="Index" asp-route-trangThai="Chưa thanh toán"
+           class="editorial-filter-btn @(trangThaiHienTai == "Chưa thanh toán" ? "active" : "")">
+            Chưa thanh toán (@ViewBag.ChuaThanhToan)
+        </a>
+        <a asp-action="Index" asp-route-trangThai="Thanh toán một phần"
+           class="editorial-filter-btn @(trangThaiHienTai == "Thanh toán một phần" ? "active" : "")">
+            Đóng một phần (@ViewBag.ThanhToanMotPhan)
+        </a>
+        <a asp-action="Index" asp-route-trangThai="Đã thanh toán"
+           class="editorial-filter-btn @(trangThaiHienTai == "Đã thanh toán" ? "active" : "")">
+            Đã thanh toán (@ViewBag.DaThanhToan)
+        </a>
+    </div>
+
+    <form asp-action="Index" method="get" class="d-flex" style="min-width: 320px;">
+        <input type="hidden" name="trangThai" value="@trangThaiHienTai" />
+        <input type="text" name="tuKhoa" value="@ViewBag.TuKhoaHienTai"
+               class="form-control mr-2" placeholder="Tìm mã HĐ, mã phòng..." />
+        <button type="submit" class="btn btn-secondary px-3">
+            <i class="fas fa-search"></i>
+        </button>
+    </form>
+</div>
+
+<!-- BẢNG THỐNG KÊ HÓA ĐƠN CHUẨN SB ADMIN 2 -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Danh sách phiếu thu & hóa đơn</span>
+        <span class="text-muted small">Hiển thị @Model.Count() hóa đơn</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table" width="100%" cellspacing="0">
+                <thead>
+                    <tr style="white-space: nowrap;">
+                        <th>Mã hóa đơn</th>
+                        <th>Phòng / Hợp đồng</th>
+                        <th class="text-center">Kỳ thu</th>
+                        <th class="text-right">Tổng tiền</th>
+                        <th class="text-right">Đã thu</th>
+                        <th class="text-right">Còn nợ</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                Chưa có hóa đơn nào. Hãy bấm nút "+ Xuất hóa đơn tự động" ở góc trên bên phải.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            decimal tongTien = item.TongTien ?? 0;
+                            decimal daThu = item.ThanhToans.Sum(t => t.SoTienTra);
+                            decimal conNo = Math.Max(0, tongTien - daThu);
+                            bool daTatToan = item.TrangThai == "Đã thanh toán";
+
+                            string badgeStyle = item.TrangThai switch
+                            {
+                                "Đã thanh toán" => "status-badge-available",
+                                "Thanh toán một phần" => "status-badge-maintenance",
+                                _ => "status-badge-occupied"
+                            };
+
+                            <tr style="white-space: nowrap; @(daTatToan ? "background-color: #FAFAFA;" : "")">
+                                <td class="font-weight-bold">
+                                    <a asp-action="Details" asp-route-id="@item.MaHoaDon" style="color: #059669; text-decoration: none;">
+                                        #@item.MaHoaDon
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge-editorial-mint mr-1">@(item.MaHopDongNavigation?.MaPhong ?? "—")</span>
+                                    <span class="font-weight-bold" style="color: #111827;">@(item.MaHopDongNavigation?.MaPhongNavigation?.TenPhong ?? "")</span>
+                                    <small class="text-muted ml-1">(HĐ #@item.MaHopDong)</small>
+                                </td>
+                                <td class="text-center font-weight-bold" style="color: #111827;">
+                                    Tháng @(item.Thang?.ToString("D2"))/@item.Nam
+                                </td>
+                                <td class="text-right font-weight-bold" style="color: #111827;">
+                                    @tongTien.ToString("N0")đ
+                                </td>
+                                <td class="text-right font-weight-bold" style="color: #059669;">
+                                    @daThu.ToString("N0")đ
+                                </td>
+                                <td class="text-right font-weight-bold" style="color: @(conNo > 0 ? "#DC2626" : "#6B7280");">
+                                    @conNo.ToString("N0")đ
+                                </td>
+                                <td class="text-center">
+                                    <span class="@badgeStyle">@item.TrangThai</span>
+                                </td>
+                                <td class="text-right">
+                                    <a asp-action="Details" asp-route-id="@item.MaHoaDon" class="btn btn-secondary btn-sm py-1 px-3">
+                                        @(daTatToan ? "Xem phiếu" : "Chi tiết & Thu tiền")
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

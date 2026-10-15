@@ -1,0 +1,119 @@
+﻿@model IEnumerable<QuanLyNhaTroBinhMinh.Models.DichVu>
+
+@{
+    ViewData["Title"] = "Đơn giá dịch vụ";
+    string? loaiHienTai = ViewBag.LoaiHienTai as string;
+}
+
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">TÀI CHÍNH & DỊCH VỤ</span>
+        <h1 class="editorial-title mb-1">Bảng đơn giá dịch vụ</h1>
+        <p class="editorial-subtitle mb-0">Thiết lập đơn giá Điện, Nước (theo đồng hồ) và các dịch vụ tiện ích cố định hàng tháng.</p>
+    </div>
+
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Create" class="btn btn-primary btn-editorial-cta">
+            <i class="fas fa-plus fa-sm mr-2"></i>Thêm dịch vụ mới
+        </a>
+    </div>
+</div>
+
+@if (TempData["ThongBao"] != null)
+{
+    <div class="p-3 mb-4 bg-editorial-mint d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-check-circle mr-2"></i>@TempData["ThongBao"]</span>
+    </div>
+}
+@if (TempData["Loi"] != null)
+{
+    <div class="alert-editorial-danger mb-4 d-flex justify-content-between align-items-center"
+         style="background-color: #FEF2F2; border: 1px solid #F87171; color: #991B1B; padding: 1rem 1.25rem; border-radius: 2px; font-weight: 600;">
+        <span><i class="fas fa-exclamation-triangle mr-2" style="color: #DC2626;"></i>@TempData["Loi"]</span>
+    </div>
+}
+
+<!-- THANH LỌC LOẠI DỊCH VỤ PHẲNG -->
+<div class="editorial-filter-bar mb-4">
+    <a asp-action="Index" asp-route-loaiDichVu=""
+       class="editorial-filter-btn @(string.IsNullOrEmpty(loaiHienTai) ? "active" : "")">
+        Tất cả dịch vụ (@ViewBag.TongDichVu)
+    </a>
+    <a asp-action="Index" asp-route-loaiDichVu="TheoChiSo"
+       class="editorial-filter-btn @(loaiHienTai == "TheoChiSo" ? "active" : "")">
+        Tính theo đồng hồ Điện/Nước (@ViewBag.SoTheoChiSo)
+    </a>
+    <a asp-action="Index" asp-route-loaiDichVu="CoDinh"
+       class="editorial-filter-btn @(loaiHienTai == "CoDinh" ? "active" : "")">
+        Phí cố định hàng tháng (@ViewBag.SoCoDinh)
+    </a>
+</div>
+
+<!-- BẢNG THỐNG KÊ ĐƠN GIÁ CHUẨN SB ADMIN 2 -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Danh mục đơn giá áp dụng khi xuất hóa đơn</span>
+        <span class="text-muted small">Hiển thị @Model.Count() dịch vụ</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table" width="100%" cellspacing="0">
+                <thead>
+                    <tr style="white-space: nowrap;">
+                        <th>Mã dịch vụ</th>
+                        <th>Tên dịch vụ</th>
+                        <th>Đơn vị tính</th>
+                        <th class="text-right">Đơn giá niêm yết</th>
+                        <th class="text-center">Phương thức tính</th>
+                        <th class="text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        bool laDienNuocCotLoi = item.MaDichVu == "DV_DIEN" || item.MaDichVu == "DV_NUOC";
+
+                        <tr style="white-space: nowrap;">
+                            <td class="font-weight-bold" style="color: #111827;">
+                                <span class="badge-editorial-mint">@item.MaDichVu</span>
+                            </td>
+                            <td class="font-weight-bold" style="color: #111827;">@item.TenDichVu</td>
+                            <td>@item.DonViTinh</td>
+                            <td class="text-right font-weight-bold" style="color: #059669; font-size: 1rem;">
+                                @item.DonGia.ToString("N0")đ <span class="text-muted small font-weight-normal">/ @item.DonViTinh</span>
+                            </td>
+                            <td class="text-center">
+                                @if (item.LaCoDinh == true)
+                                {
+                                    <span class="status-badge-occupied">Cố định hàng tháng (SL = 1)</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge-available">Theo chỉ số đồng hồ (Mới - Cũ)</span>
+                                }
+                            </td>
+                            <td class="text-right">
+                                <a asp-action="Edit" asp-route-id="@item.MaDichVu" class="btn btn-secondary btn-sm py-1 px-3 mr-2">
+                                    Sửa giá
+                                </a>
+                                @if (laDienNuocCotLoi)
+                                {
+                                    <span class="text-muted small font-weight-bold" title="Dịch vụ mặc định của hệ thống">Mặc định</span>
+                                }
+                                else
+                                {
+                                    <form asp-action="Delete" asp-route-id="@item.MaDichVu" method="post" class="d-inline"
+                                          onsubmit="return confirm('Xác nhận xóa mềm dịch vụ @item.TenDichVu?');">
+                                        <button type="submit" class="btn btn-link btn-sm text-muted p-0" style="font-weight: 600; text-decoration: none;">
+                                            Xóa
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

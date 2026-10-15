@@ -82,12 +82,12 @@ public class HopDongController : Controller
             .Include(h => h.MaNguoiDungDaiDienNavigation)
             .Include(h => h.KhachOs)
             .Include(h => h.HoaDons)
+            .Include(h => h.DichVuHopDongs)
             .AsNoTracking()
             .FirstOrDefaultAsync(h => h.MaHopDong == id);
 
         if (hopDong == null) return NotFound();
 
-        // Nếu hợp đồng Đã thanh lý mà trước đó khách lỡ bị đánh dấu DaXoa = true, vẫn lấy lên để xem lịch sử
         if (hopDong.TrangThai == "Đã thanh lý" && !hopDong.KhachOs.Any())
         {
             hopDong.KhachOs = await _context.KhachOs
@@ -96,6 +96,22 @@ public class HopDongController : Controller
                 .Where(k => k.MaHopDong == id)
                 .ToListAsync();
         }
+
+        // Lấy danh sách dịch vụ cố định (LaCoDinh == true, như Wifi...)
+        ViewBag.DichVuCoDinh = await _context.DichVus
+            .AsNoTracking()
+            .Where(d => d.LaCoDinh == true)
+            .OrderBy(d => d.MaDichVu)
+            .ToListAsync();
+
+        // Truy vấn trực tiếp danh sách Mã dịch vụ mà hợp đồng này đã đăng ký
+        var daDangKyList = await _context.DichVuHopDongs
+            .AsNoTracking()
+            .Where(x => x.MaHopDong == id && x.MaDichVu != null)
+            .Select(x => x.MaDichVu!.Trim().ToUpper())
+            .ToListAsync();
+
+        ViewBag.MaDichVuDaDangKy = daDangKyList;
 
         return View(hopDong);
     }
@@ -357,5 +373,44 @@ public class HopDongController : Controller
 
         ViewBag.DanhSachPhong = new SelectList(rooms, "MaPhong", "HienThi", selectedPhong);
         ViewBag.DanhSachNguoiDung = new SelectList(users, "MaNguoiDung", "HienThi", selectedNguoiDung);
+    }
+    // 8. BẬT / TẮT DỊCH VỤ CỐ ĐỊNH CHO HỢP ĐỒNG 1-CLICK (DICHVUHOPDONG)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleDichVu(string maHopDong, string maDichVu)
+    {
+        var hopDong = await _context.HopDongs.FindAsync(maHopDong);
+        if (hopDong == null || hopDong.TrangThai == "Đã thanh lý")
+        {
+            return RedirectToAction(nameof(Details), new { id = maHopDong });
+        }
+
+        var dichVu = await _context.DichVus.FindAsync(maDichVu);
+        string tenHienThi = dichVu?.TenDichVu ?? maDichVu;
+
+        var existingList = await _context.DichVuHopDongs
+            .Where(x => x.MaHopDong == maHopDong && x.MaDichVu == maDichVu)
+            .ToListAsync();
+
+        if (existingList.Any())
+        {
+            // Xóa toàn bộ bản ghi trùng (nếu trước đó bạn bấm nhiều lần)
+            _context.DichVuHopDongs.RemoveRange(existingList);
+            TempData["ThongBao"] = $"Đã hủy đăng ký dịch vụ {tenHienThi} khỏi hợp đồng #{maHopDong}.";
+        }
+        else
+        {
+            string maDvHd = $"DVHD{DateTime.Now:ddHHmmss}{Random.Shared.Next(10, 99)}";
+            _context.DichVuHopDongs.Add(new DichVuHopDong
+            {
+                MaDvHd = maDvHd,
+                MaHopDong = maHopDong,
+                MaDichVu = maDichVu
+            });
+            TempData["ThongBao"] = $"Đã đăng ký dịch vụ {tenHienThi} vào hợp đồng #{maHopDong} thành công.";
+        }
+
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Details), new { id = maHopDong });
     }
 }

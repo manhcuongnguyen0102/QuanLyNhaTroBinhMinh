@@ -1,0 +1,65 @@
+﻿@{
+    ViewData["Title"] = "Xuất hóa đơn tự động";
+}
+
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">TỰ ĐỘNG HÓA TÍNH TIỀN</span>
+        <h1 class="editorial-title mb-1">Xuất hóa đơn tháng tự động</h1>
+      
+    </div>
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left fa-sm mr-2"></i>Quay lại danh sách
+        </a>
+    </div>
+</div>
+
+@if (TempData["Loi"] != null)
+{
+    <div class="alert-editorial-danger mb-4"
+         style="background-color: #FEF2F2; border: 1px solid #F87171; color: #991B1B; padding: 1rem 1.25rem; border-radius: 2px; font-weight: 600;">
+        <i class="fas fa-exclamation-triangle mr-2" style="color: #DC2626;"></i>@TempData["Loi"]
+    </div>
+}
+
+<div class="row">
+    <div class="col-xl-7 col-lg-9">
+        <div class="card">
+            
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div class="form-group mb-4">
+                        <label class="editorial-label">Phạm vi hợp đồng cần xuất hóa đơn *</label>
+                        <select name="maHopDong" asp-items="ViewBag.DanhSachHopDong" class="form-control">
+                            <option value="ALL">⚡ XUẤT HÀNG LOẠT: Tất cả hợp đồng đang Hiệu lực</option>
+                        </select>
+                        <small class="text-muted d-block mt-1">
+                            Lưu ý: Phòng cần được chốt chỉ số Điện Nước của kỳ tương ứng trước khi xuất hóa đơn.
+                        </small>
+                    </div>
+
+                    <div class="form-row mb-4">
+                        <div class="form-group col-md-6">
+                            <label class="editorial-label">Tháng tính tiền *</label>
+                            <input type="number" name="thang" value="@ViewBag.ThangMacDinh" min="1" max="12" class="form-control" required />
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <label class="editorial-label">Năm *</label>
+                            <input type="number" name="nam" value="@ViewBag.NamMacDinh" min="2020" class="form-control" required />
+                        </div>
+                    </div>
+
+                    
+                    <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid #E5E7EB;">
+                        <a asp-action="Index" class="btn btn-secondary mr-3">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary btn-editorial-cta">
+                            <i class="fas fa-bolt fa-sm mr-2"></i>Kích hoạt xuất hóa đơn ngay
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

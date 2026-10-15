@@ -1,0 +1,167 @@
+﻿@model QuanLyNhaTroBinhMinh.Models.ChiSoDienNuoc
+
+@{
+    ViewData["Title"] = "Ghi chỉ số điện nước";
+}
+
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">CHỐT ĐỒNG HỒ HÀNG THÁNG</span>
+        <h1 class="editorial-title mb-1">Ghi chỉ số điện nước mới</h1>
+        <p class="editorial-subtitle mb-0">Khi chọn phòng, hệ thống sẽ tự động lấy chỉ số mới của tháng trước điền vào ô chỉ số cũ.</p>
+    </div>
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left fa-sm mr-2"></i>Quay lại danh sách
+        </a>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert-editorial-danger mb-4"
+         style="background-color: #FEF2F2; border: 1px solid #F87171; color: #991B1B; padding: 1rem 1.25rem; border-radius: 2px; font-weight: 600;">
+        <div class="mb-1"><i class="fas fa-exclamation-triangle mr-2" style="color: #DC2626;"></i>Vui lòng kiểm tra lại dữ liệu chỉ số:</div>
+        <div asp-validation-summary="All" class="small mb-0"></div>
+    </div>
+}
+
+<div class="row">
+    <div class="col-xl-8 col-lg-10">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Phiếu chốt chỉ số đồng hồ</span>
+                <span id="thongBaoChiSoCu" class="badge-editorial-mint">Chọn phòng để tự động nạp chỉ số cũ</span>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div class="form-row">
+                        <div class="form-group col-md-3 mb-4">
+                            <label asp-for="MaChiSo" class="editorial-label">Mã phiếu chốt *</label>
+                            <input asp-for="MaChiSo" class="form-control" required />
+                            <span asp-validation-for="MaChiSo" class="text-danger small font-weight-bold"></span>
+                        </div>
+
+                        <div class="form-group col-md-5 mb-4">
+                            <label asp-for="MaPhong" class="editorial-label">Chọn phòng trọ *</label>
+                            <select asp-for="MaPhong" asp-items="ViewBag.DanhSachPhong" class="form-control" id="selectMaPhong" required>
+                                <option value="">-- Chọn phòng cần chốt --</option>
+                            </select>
+                            <span asp-validation-for="MaPhong" class="text-danger small font-weight-bold"></span>
+                        </div>
+
+                        <div class="form-group col-md-2 mb-4">
+                            <label asp-for="Thang" class="editorial-label">Tháng *</label>
+                            <input asp-for="Thang" type="number" min="1" max="12" class="form-control" id="inputThang" required />
+                        </div>
+
+                        <div class="form-group col-md-2 mb-4">
+                            <label asp-for="Nam" class="editorial-label">Năm *</label>
+                            <input asp-for="Nam" type="number" min="2020" class="form-control" id="inputNam" required />
+                        </div>
+                    </div>
+
+                    <!-- KHỐI CHỈ SỐ ĐIỆN -->
+                    <div class="p-3 mb-4" style="background-color: #FAFAFA; border: 1px solid #E5E7EB; border-radius: 2px;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <strong style="color: #111827;"><i class="fas fa-bolt mr-2" style="color: #059669;"></i>CHỈ SỐ ĐỒNG HỒ ĐIỆN (kWh)</strong>
+                            <span class="status-badge-available" id="lblTieuThuDien">Tiêu thụ: 0 kWh</span>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6 mb-0">
+                                <label asp-for="DienCu" class="editorial-label">Chỉ số Điện cũ *</label>
+                                <input asp-for="DienCu" type="number" min="0" class="form-control" id="inputDienCu" required />
+                            </div>
+                            <div class="form-group col-md-6 mb-0">
+                                <label asp-for="DienMoi" class="editorial-label">Chỉ số Điện mới (Phải ≥ Điện cũ) *</label>
+                                <input asp-for="DienMoi" type="number" min="0" class="form-control" id="inputDienMoi" required />
+                                <span asp-validation-for="DienMoi" class="text-danger small font-weight-bold"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KHỐI CHỈ SỐ NƯỚC -->
+                    <div class="p-3 mb-4" style="background-color: #FAFAFA; border: 1px solid #E5E7EB; border-radius: 2px;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <strong style="color: #111827;"><i class="fas fa-tint mr-2" style="color: #059669;"></i>CHỈ SỐ ĐỒNG HỒ NƯỚC (Khối)</strong>
+                            <span class="status-badge-available" id="lblTieuThuNuoc">Tiêu thụ: 0 Khối</span>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6 mb-0">
+                                <label asp-for="NuocCu" class="editorial-label">Chỉ số Nước cũ *</label>
+                                <input asp-for="NuocCu" type="number" min="0" class="form-control" id="inputNuocCu" required />
+                            </div>
+                            <div class="form-group col-md-6 mb-0">
+                                <label asp-for="NuocMoi" class="editorial-label">Chỉ số Nước mới (Phải ≥ Nước cũ) *</label>
+                                <input asp-for="NuocMoi" type="number" min="0" class="form-control" id="inputNuocMoi" required />
+                                <span asp-validation-for="NuocMoi" class="text-danger small font-weight-bold"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-5">
+                        <label asp-for="AnhDongHo" class="editorial-label">Ghi chú / Đường dẫn ảnh chụp đồng hồ (Tùy chọn)</label>
+                        <input asp-for="AnhDongHo" class="form-control" placeholder="VD: Đã đối chiếu ảnh chụp Zalo ngày 30..." />
+                    </div>
+
+                    <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid #E5E7EB;">
+                        <a asp-action="Index" class="btn btn-secondary mr-3">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary btn-editorial-cta">
+                            <i class="fas fa-check fa-sm mr-2"></i>Lưu chỉ số điện nước
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function capNhatSanLuong() {
+            const dienCu = parseInt(document.getElementById('inputDienCu').value) || 0;
+            const dienMoi = parseInt(document.getElementById('inputDienMoi').value) || 0;
+            const nuocCu = parseInt(document.getElementById('inputNuocCu').value) || 0;
+            const nuocMoi = parseInt(document.getElementById('inputNuocMoi').value) || 0;
+
+            document.getElementById('lblTieuThuDien').innerText = `Tiêu thụ: ${Math.max(0, dienMoi - dienCu)} kWh`;
+            document.getElementById('lblTieuThuNuoc').innerText = `Tiêu thụ: ${Math.max(0, nuocMoi - nuocCu)} Khối`;
+        }
+
+        async function tuDongNapChiSoCu() {
+            const maPhong = document.getElementById('selectMaPhong').value;
+            const thang = document.getElementById('inputThang').value;
+            const nam = document.getElementById('inputNam').value;
+            const badge = document.getElementById('thongBaoChiSoCu');
+
+            if (!maPhong) return;
+
+            const res = await fetch(`/ChiSoDienNuoc/LayChiSoCu?maPhong=${encodeURIComponent(maPhong)}&thang=${thang}&nam=${nam}`);
+            const data = await res.json();
+
+            document.getElementById('inputDienCu').value = data.dienCu;
+            document.getElementById('inputNuocCu').value = data.nuocCu;
+
+            if (parseInt(document.getElementById('inputDienMoi').value) < data.dienCu) {
+                document.getElementById('inputDienMoi').value = data.dienCu;
+            }
+            if (parseInt(document.getElementById('inputNuocMoi').value) < data.nuocCu) {
+                document.getElementById('inputNuocMoi').value = data.nuocCu;
+            }
+
+            badge.innerText = data.coDuLieuCu
+                ? `Đã kế thừa chỉ số từ kỳ ${data.kyTruoc} (Điện: ${data.dienCu}, Nước: ${data.nuocCu})`
+                : `Phòng chưa có lịch sử chốt trước đó (Mặc định Cũ = 0)`;
+
+            capNhatSanLuong();
+        }
+
+        document.getElementById('selectMaPhong').addEventListener('change', tuDongNapChiSoCu);
+        document.getElementById('inputThang').addEventListener('change', tuDongNapChiSoCu);
+        document.getElementById('inputNam').addEventListener('change', tuDongNapChiSoCu);
+        ['inputDienCu', 'inputDienMoi', 'inputNuocCu', 'inputNuocMoi'].forEach(id => {
+            document.getElementById(id).addEventListener('input', capNhatSanLuong);
+        });
+    </script>
+}

@@ -1,0 +1,124 @@
+﻿@model IEnumerable<QuanLyNhaTroBinhMinh.Models.ChiSoDienNuoc>
+
+@{
+    ViewData["Title"] = "Chốt chỉ số điện nước";
+}
+
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">TÀI CHÍNH & DỊCH VỤ</span>
+        <h1 class="editorial-title mb-1">Sổ chốt chỉ số điện nước</h1>
+        <p class="editorial-subtitle mb-0">Ghi nhận chỉ số đồng hồ hàng tháng làm căn cứ tự động bóc tách chi tiết hóa đơn.</p>
+    </div>
+
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Create" class="btn btn-primary btn-editorial-cta">
+            <i class="fas fa-tachometer-alt fa-sm mr-2"></i>+ Ghi chỉ số tháng mới
+        </a>
+    </div>
+</div>
+
+@if (TempData["ThongBao"] != null)
+{
+    <div class="p-3 mb-4 bg-editorial-mint d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-check-circle mr-2"></i>@TempData["ThongBao"]</span>
+    </div>
+}
+
+<!-- BỘ LỌC THEO PHÒNG / THÁNG / NĂM -->
+<div class="card mb-4">
+    <div class="card-body py-3">
+        <form asp-action="Index" method="get" class="form-row align-items-end">
+            <div class="col-md-4 mb-2 mb-md-0">
+                <label class="editorial-label">Lọc theo phòng</label>
+                <select name="maPhong" asp-items="ViewBag.DanhSachPhong" class="form-control">
+                    <option value="">-- Tất cả các phòng --</option>
+                </select>
+            </div>
+            <div class="col-md-3 mb-2 mb-md-0">
+                <label class="editorial-label">Tháng</label>
+                <input type="number" name="thang" value="@ViewBag.ThangHienTai" min="1" max="12" class="form-control" placeholder="1 - 12" />
+            </div>
+            <div class="col-md-3 mb-2 mb-md-0">
+                <label class="editorial-label">Năm</label>
+                <input type="number" name="nam" value="@ViewBag.NamHienTai" min="2020" class="form-control" placeholder="VD: 2026" />
+            </div>
+            <div class="col-md-2 d-flex">
+                <button type="submit" class="btn btn-secondary btn-block mr-2">Lọc</button>
+                <a asp-action="Index" class="btn btn-secondary px-3" title="Xóa bộ lọc"><i class="fas fa-redo-alt"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- BẢNG THỐNG KÊ CHỈ SỐ ĐIỆN NƯỚC CHUẨN SB ADMIN 2 -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Lịch sử chốt đồng hồ Điện & Nước</span>
+        <span class="text-muted small">Hiển thị @Model.Count() bản ghi</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table" width="100%" cellspacing="0">
+                <thead>
+                    <tr style="white-space: nowrap;">
+                        <th>Mã chốt</th>
+                        <th>Phòng</th>
+                        <th class="text-center">Kỳ chốt</th>
+                        <th class="text-right">Điện (Cũ → Mới)</th>
+                        <th class="text-right">Tiêu thụ Điện</th>
+                        <th class="text-right">Nước (Cũ → Mới)</th>
+                        <th class="text-right">Tiêu thụ Nước</th>
+                        <th class="text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                Chưa có dữ liệu chốt chỉ số điện nước nào khớp với điều kiện lọc.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            int soDien = (item.DienMoi ?? 0) - (item.DienCu ?? 0);
+                            int soNuoc = (item.NuocMoi ?? 0) - (item.NuocCu ?? 0);
+
+                            <tr style="white-space: nowrap;">
+                                <td class="font-weight-bold" style="color: #111827;">#@item.MaChiSo</td>
+                                <td>
+                                    <span class="badge-editorial-mint mr-1">@item.MaPhong</span>
+                                    <strong style="color: #111827;">@(item.MaPhongNavigation?.TenPhong ?? "")</strong>
+                                </td>
+                                <td class="text-center font-weight-bold" style="color: #111827;">
+                                    Tháng @(item.Thang?.ToString("D2"))/@item.Nam
+                                </td>
+                                <td class="text-right text-muted">
+                                    @item.DienCu → <strong style="color: #111827;">@item.DienMoi</strong>
+                                </td>
+                                <td class="text-right">
+                                    <span class="status-badge-available">@soDien kWh</span>
+                                </td>
+                                <td class="text-right text-muted">
+                                    @item.NuocCu → <strong style="color: #111827;">@item.NuocMoi</strong>
+                                </td>
+                                <td class="text-right">
+                                    <span class="status-badge-available">@soNuoc Khối</span>
+                                </td>
+                                <td class="text-right">
+                                    <a asp-action="Edit" asp-route-id="@item.MaChiSo" class="btn btn-secondary btn-sm py-1 px-3">
+                                        Sửa chỉ số
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
