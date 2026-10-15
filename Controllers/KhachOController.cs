@@ -24,17 +24,27 @@ public class KhachOController : Controller
             .AsNoTracking()
             .AsQueryable();
 
-        // Lọc theo trạng thái đăng ký tạm trú
-        if (tamTru == "DaDangKy")
+        // Lọc theo tab: Mặc định chỉ lấy khách thuộc hợp đồng đang "Hiệu lực"
+        if (tamTru == "DaTraPhong")
         {
-            query = query.Where(k => k.DaDangKyTamTru == true);
+            query = query.Where(k => k.MaHopDongNavigation != null && k.MaHopDongNavigation.TrangThai == "Đã thanh lý");
+        }
+        else if (tamTru == "DaDangKy")
+        {
+            query = query.Where(k => (k.MaHopDongNavigation == null || k.MaHopDongNavigation.TrangThai == "Hiệu lực")
+                                  && k.DaDangKyTamTru == true);
         }
         else if (tamTru == "ChuaDangKy")
         {
-            query = query.Where(k => k.DaDangKyTamTru != true);
+            query = query.Where(k => (k.MaHopDongNavigation == null || k.MaHopDongNavigation.TrangThai == "Hiệu lực")
+                                  && k.DaDangKyTamTru != true);
+        }
+        else
+        {
+            // Tab mặc định: Tất cả cư dân đang ở hiện tại
+            query = query.Where(k => k.MaHopDongNavigation == null || k.MaHopDongNavigation.TrangThai == "Hiệu lực");
         }
 
-        // Tìm kiếm theo Họ tên, CCCD, Số điện thoại, Mã khách hoặc Mã hợp đồng
         if (!string.IsNullOrWhiteSpace(tuKhoa))
         {
             var kw = tuKhoa.Trim();
@@ -45,10 +55,19 @@ public class KhachOController : Controller
                                   || (k.MaHopDong != null && k.MaHopDong.Contains(kw)));
         }
 
-        var allTenants = await _context.KhachOs.AsNoTracking().ToListAsync();
-        ViewBag.TongSoKhach = allTenants.Count;
-        ViewBag.SoDaDangKy = allTenants.Count(k => k.DaDangKyTamTru == true);
-        ViewBag.SoChuaDangKy = allTenants.Count(k => k.DaDangKyTamTru != true);
+        var allTenants = await _context.KhachOs
+            .Include(k => k.MaHopDongNavigation)
+            .AsNoTracking()
+            .ToListAsync();
+
+        var activeTenants = allTenants
+            .Where(k => k.MaHopDongNavigation == null || k.MaHopDongNavigation.TrangThai == "Hiệu lực")
+            .ToList();
+
+        ViewBag.TongSoKhach = activeTenants.Count;
+        ViewBag.SoDaDangKy = activeTenants.Count(k => k.DaDangKyTamTru == true);
+        ViewBag.SoChuaDangKy = activeTenants.Count(k => k.DaDangKyTamTru != true);
+        ViewBag.SoDaTraPhong = allTenants.Count(k => k.MaHopDongNavigation != null && k.MaHopDongNavigation.TrangThai == "Đã thanh lý");
 
         ViewBag.TamTruHienTai = tamTru;
         ViewBag.TuKhoaHienTai = tuKhoa;
@@ -197,8 +216,8 @@ public class KhachOController : Controller
         var contracts = await _context.HopDongs
             .Include(h => h.MaPhongNavigation)
             .AsNoTracking()
-            .OrderByDescending(h => h.TrangThai == "Hiệu lực")
-            .ThenBy(h => h.MaHopDong)
+            .Where(h => h.TrangThai == "Hiệu lực" || h.MaHopDong == selectedHopDong)
+            .OrderBy(h => h.MaHopDong)
             .Select(h => new
             {
                 h.MaHopDong,

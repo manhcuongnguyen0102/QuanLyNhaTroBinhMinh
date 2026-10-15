@@ -6,9 +6,9 @@
 
 <div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
     <div>
-        <span class="badge-editorial-mint mb-2 d-inline-block">CẬP NHẬT HỒ SƠ</span>
+        <span class="badge-editorial-mint mb-2 d-inline-block">CẬP NHẬT HỒ SƠ ĐANG HIỆU LỰC</span>
         <h1 class="editorial-title mb-1">Chỉnh sửa hợp đồng #@Model.MaHopDong</h1>
-        <p class="editorial-subtitle mb-0">Điều chỉnh thời hạn, tiền đặt cọc hoặc trạng thái hiệu lực của hợp đồng.</p>
+        <p class="editorial-subtitle mb-0">Gia hạn thời gian kết thúc, điều chỉnh tiền đặt cọc hoặc gán bổ sung tài khoản đại diện.</p>
     </div>
     <div class="mt-4 mt-sm-0">
         <a asp-action="Index" class="btn btn-secondary">
@@ -17,24 +17,34 @@
     </div>
 </div>
 
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert-editorial-danger mb-4"
+         style="background-color: #FEF2F2; border: 1px solid #F87171; color: #991B1B; padding: 1rem 1.25rem; border-radius: 2px; font-weight: 600;">
+        <div class="mb-1"><i class="fas fa-exclamation-triangle mr-2" style="color: #DC2626;"></i>Vui lòng kiểm tra lại thông tin hợp đồng:</div>
+        <div asp-validation-summary="All" class="small mb-0"></div>
+    </div>
+}
+
 <div class="row">
     <div class="col-xl-8 col-lg-10">
         <div class="card">
-            <div class="card-header">Hồ sơ hợp đồng — Mã: @Model.MaHopDong</div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Hồ sơ hợp đồng — Mã: @Model.MaHopDong</span>
+                <span class="status-badge-available">Đang hiệu lực</span>
+            </div>
             <div class="card-body">
                 <form asp-action="Edit" method="post">
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
-
                     <div class="form-row">
                         <div class="form-group col-md-4 mb-4">
                             <label asp-for="MaHopDong" class="editorial-label">Mã hợp đồng (Cố định)</label>
-                            <input asp-for="MaHopDong" class="form-control" readonly style="background-color: #F9FAFB !important;" />
+                            <input asp-for="MaHopDong" class="form-control" readonly style="background-color: #F9FAFB !important; color: #6B7280 !important;" />
                         </div>
 
                         <div class="form-group col-md-8 mb-4">
                             <label asp-for="MaPhong" class="editorial-label">Phòng trọ *</label>
                             <select asp-for="MaPhong" asp-items="ViewBag.DanhSachPhong" class="form-control" required></select>
-                            <span asp-validation-for="MaPhong" class="text-danger small"></span>
+                            <span asp-validation-for="MaPhong" class="text-danger small font-weight-bold"></span>
                         </div>
                     </div>
 
@@ -43,38 +53,30 @@
                             <label asp-for="NgayBatDau" class="editorial-label">Ngày bắt đầu *</label>
                             <input asp-for="NgayBatDau" type="date" class="form-control"
                                    value="@Model.NgayBatDau.ToString("yyyy-MM-dd")" required />
-                            <span asp-validation-for="NgayBatDau" class="text-danger small"></span>
+                            <span asp-validation-for="NgayBatDau" class="text-danger small font-weight-bold"></span>
                         </div>
 
                         <div class="form-group col-md-6 mb-4">
-                            <label asp-for="NgayKetThuc" class="editorial-label">Ngày kết thúc *</label>
+                            <label asp-for="NgayKetThuc" class="editorial-label">Ngày kết thúc (Gia hạn) *</label>
                             <input asp-for="NgayKetThuc" type="date" class="form-control"
                                    value="@Model.NgayKetThuc.ToString("yyyy-MM-dd")" required />
-                            <span asp-validation-for="NgayKetThuc" class="text-danger small"></span>
+                            <span asp-validation-for="NgayKetThuc" class="text-danger small font-weight-bold"></span>
                         </div>
                     </div>
 
-                    <div class="form-row">
+                    <div class="form-row mb-4">
                         <div class="form-group col-md-6 mb-4">
                             <label asp-for="TienCoc" class="editorial-label">Tiền đặt cọc (VNĐ)</label>
                             <input asp-for="TienCoc" type="number" step="1000" min="0" class="form-control" />
-                            <span asp-validation-for="TienCoc" class="text-danger small"></span>
+                            <span asp-validation-for="TienCoc" class="text-danger small font-weight-bold"></span>
                         </div>
 
                         <div class="form-group col-md-6 mb-4">
-                            <label asp-for="MaNguoiDungDaiDien" class="editorial-label">Tài khoản người đại diện</label>
+                            <label asp-for="MaNguoiDungDaiDien" class="editorial-label">Tài khoản trưởng phòng đại diện</label>
                             <select asp-for="MaNguoiDungDaiDien" asp-items="ViewBag.DanhSachNguoiDung" class="form-control">
                                 <option value="">-- Chưa gán tài khoản đại diện --</option>
                             </select>
                         </div>
-                    </div>
-
-                    <div class="form-group mb-5">
-                        <label asp-for="TrangThai" class="editorial-label">Trạng thái hợp đồng</label>
-                        <select asp-for="TrangThai" class="form-control">
-                            <option value="Hiệu lực">Hiệu lực</option>
-                            <option value="Đã thanh lý">Đã thanh lý</option>
-                        </select>
                     </div>
 
                     <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid #E5E7EB;">

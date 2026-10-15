@@ -42,6 +42,10 @@
            class="editorial-filter-btn @(tamTruHienTai == "ChuaDangKy" ? "active" : "")">
             Chưa đăng ký tạm trú (@ViewBag.SoChuaDangKy)
         </a>
+        <a asp-action="Index" asp-route-tamTru="DaTraPhong"
+           class="editorial-filter-btn @(tamTruHienTai == "DaTraPhong" ? "active" : "")">
+            Lịch sử đã trả phòng (@(ViewBag.SoDaTraPhong ?? 0))
+        </a>
     </div>
 
     <form asp-action="Index" method="get" class="d-flex" style="min-width: 320px;">

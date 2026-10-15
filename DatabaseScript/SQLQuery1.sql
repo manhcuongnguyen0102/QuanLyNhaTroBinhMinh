@@ -174,3 +174,8 @@ INSERT INTO SuCo (MaSuCo, MaPhong, MaNguoiDung_Bao, MoTa, TrangThai) VALUES
 
 INSERT INTO ThongBao (MaThongBao, TieuDe, NoiDung, MaNguoiDung_Tao) VALUES 
 ('TB_001', N'Lịch thu tiền tháng 9', N'Đề nghị các phòng hoàn tất thanh toán trước ngày 05/10', 'ND_ADMIN01');
+go
+select *from PhongTro
+USE QuanLyNhaTroBinhMinh;
+SELECT OBJECT_NAME(parent_object_id) AS TenBang, name AS TenRangBuoc, definition AS GiaTriChoPhep
+FROM sys.check_constraints;

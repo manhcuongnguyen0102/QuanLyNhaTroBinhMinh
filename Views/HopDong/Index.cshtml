@@ -21,10 +21,18 @@
     </div>
 </div>
 
+<!-- KHUNG THÔNG BÁO THÀNH CÔNG (XANH) & CẢNH BÁO LỖI (ĐỎ NỔI BẬT) -->
 @if (TempData["ThongBao"] != null)
 {
     <div class="p-3 mb-4 bg-editorial-mint d-flex justify-content-between align-items-center">
         <span><i class="fas fa-check-circle mr-2"></i>@TempData["ThongBao"]</span>
+    </div>
+}
+@if (TempData["Loi"] != null)
+{
+    <div class="alert-editorial-danger mb-4 d-flex justify-content-between align-items-center"
+         style="background-color: #FEF2F2; border: 1px solid #F87171; color: #991B1B; padding: 1rem 1.25rem; border-radius: 2px; font-weight: 600;">
+        <span><i class="fas fa-exclamation-triangle mr-2" style="color: #DC2626;"></i>@TempData["Loi"]</span>
     </div>
 }
 
@@ -69,15 +77,15 @@
         <div class="table-responsive">
             <table class="table" width="100%" cellspacing="0">
                 <thead>
-                    <tr>
-                        <th class="cell-nowrap">Mã HĐ</th>
-                        <th class="cell-nowrap">Phòng thuê</th>
-                        <th class="cell-nowrap">Tài khoản đại diện</th>
-                        <th class="cell-nowrap">Thời hạn thuê</th>
-                        <th class="text-right cell-nowrap">Tiền cọc</th>
-                        <th class="text-center cell-nowrap">Nhân khẩu</th>
-                        <th class="text-center cell-nowrap">Trạng thái</th>
-                        <th class="text-right cell-nowrap">Thao tác</th>
+                    <tr style="white-space: nowrap;">
+                        <th>Mã HĐ</th>
+                        <th>Phòng thuê</th>
+                        <th>Tài khoản đại diện</th>
+                        <th>Thời hạn thuê</th>
+                        <th class="text-right">Tiền cọc</th>
+                        <th class="text-center">Nhân khẩu</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-right">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -96,32 +104,43 @@
                             bool daThanhLy = item.TrangThai == "Đã thanh lý";
                             bool sapHetHan = !daThanhLy && item.NgayKetThuc >= homNay && item.NgayKetThuc <= homNay.AddDays(30);
 
-                            string badgeClass = daThanhLy
-                            ? "status-badge-occupied"
-                            : (sapHetHan ? "status-badge-maintenance" : "status-badge-available");
+                            string rowStyle = daThanhLy ? "background-color: #F3F4F6; color: #6B7280;" : "";
+                            string textColor = daThanhLy ? "#6B7280" : "#111827";
 
-                            <tr class="@(daThanhLy ? "row-terminated" : "")">
-                                <td class="font-weight-bold cell-nowrap">
+                            string pillStyle = daThanhLy
+                            ? "background-color: #E5E7EB; color: #4B5563; border: 1px solid #D1D5DB; padding: 0.3rem 0.6rem; border-radius: 2px; font-weight: 600; font-size: 0.8rem; white-space: nowrap; display: inline-block;"
+                            : "background-color: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; padding: 0.3rem 0.6rem; border-radius: 2px; font-weight: 600; font-size: 0.8rem; white-space: nowrap; display: inline-block;";
+
+                            string statusStyle = daThanhLy
+                            ? "background-color: #E5E7EB; color: #374151; border: 1px solid #D1D5DB; padding: 0.35rem 0.75rem; border-radius: 2px; font-weight: 700; font-size: 0.75rem; white-space: nowrap; display: inline-block;"
+                            : (sapHetHan
+                            ? "background-color: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; padding: 0.35rem 0.75rem; border-radius: 2px; font-weight: 700; font-size: 0.75rem; white-space: nowrap; display: inline-block;"
+                            : "background-color: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; padding: 0.35rem 0.75rem; border-radius: 2px; font-weight: 700; font-size: 0.75rem; white-space: nowrap; display: inline-block;");
+
+                            <tr style="@rowStyle">
+                                <td class="font-weight-bold" style="white-space: nowrap;">
                                     <a asp-action="Details" asp-route-id="@item.MaHopDong"
                                        style="color: @(daThanhLy ? "#6B7280" : "#059669"); text-decoration: none;">
                                         #@item.MaHopDong
                                     </a>
                                 </td>
-                                <td class="cell-nowrap">
+
+                                <td style="white-space: nowrap;">
                                     @if (item.MaPhongNavigation != null)
                                     {
-                                        <span class="badge-editorial-mint mr-2">@item.MaPhong</span>
-                                        <span class="font-weight-bold" style="color: #111827;">@item.MaPhongNavigation.TenPhong</span>
+                                        <span style="@pillStyle" class="mr-2">@item.MaPhong</span>
+                                        <span class="font-weight-bold" style="color: @textColor;">@item.MaPhongNavigation.TenPhong</span>
                                     }
                                     else
                                     {
                                         <span class="text-muted">Chưa gán</span>
                                     }
                                 </td>
-                                <td class="cell-nowrap">
+
+                                <td style="white-space: nowrap;">
                                     @if (item.MaNguoiDungDaiDienNavigation != null)
                                     {
-                                        <span style="color: #111827; font-weight: 600;">@item.MaNguoiDungDaiDienNavigation.TenDangNhap</span>
+                                        <span style="color: @textColor; font-weight: 600;">@item.MaNguoiDungDaiDienNavigation.TenDangNhap</span>
                                         <small class="d-block text-muted">Mã: @item.MaNguoiDungDaiDien</small>
                                     }
                                     else
@@ -129,8 +148,9 @@
                                         <span class="text-muted">—</span>
                                     }
                                 </td>
-                                <td class="cell-nowrap">
-                                    <div style="color: #111827; font-weight: 500;">
+
+                                <td style="white-space: nowrap;">
+                                    <div style="color: @textColor; font-weight: 500;">
                                         @item.NgayBatDau.ToString("dd/MM/yyyy") → @item.NgayKetThuc.ToString("dd/MM/yyyy")
                                     </div>
                                     @if (sapHetHan)
@@ -138,24 +158,38 @@
                                         <small style="color: #B45309; font-weight: 600;">Sắp hết hạn</small>
                                     }
                                 </td>
-                                <td class="text-right font-weight-bold cell-nowrap" style="color: #111827;">
+
+                                <td class="text-right font-weight-bold" style="color: @textColor; white-space: nowrap;">
                                     @(item.TienCoc.HasValue ? $"{item.TienCoc.Value:N0}đ" : "0đ")
                                 </td>
-                                <td class="text-center cell-nowrap">
-                                    <a asp-action="Details" asp-route-id="@item.MaHopDong" class="badge-editorial-mint" style="text-decoration: none;">
+
+                                <td class="text-center" style="white-space: nowrap;">
+                                    <a asp-action="Details" asp-route-id="@item.MaHopDong" style="@pillStyle text-decoration: none;">
                                         @item.KhachOs.Count người
                                     </a>
                                 </td>
-                                <td class="text-center cell-nowrap">
-                                    <span class="@badgeClass">@(item.TrangThai ?? "Chưa rõ")</span>
+
+                                <td class="text-center" style="white-space: nowrap;">
+                                    <span style="@statusStyle">@(item.TrangThai ?? "Chưa rõ")</span>
                                 </td>
-                                <td class="text-right cell-nowrap">
-                                    <a asp-action="Details" asp-route-id="@item.MaHopDong" class="btn btn-secondary btn-sm py-1 px-2 mr-1">
-                                        Chi tiết & Khách ở
-                                    </a>
-                                    <a asp-action="Edit" asp-route-id="@item.MaHopDong" class="btn btn-secondary btn-sm py-1 px-2">
-                                        Sửa
-                                    </a>
+
+                                <td class="text-right" style="white-space: nowrap;">
+                                    @if (daThanhLy)
+                                    {
+                                        <!-- Hợp đồng Đã thanh lý: Khóa quyền Sửa, chỉ cho Xem hồ sơ lịch sử -->
+                                        <a asp-action="Details" asp-route-id="@item.MaHopDong" class="btn btn-secondary btn-sm py-1 px-3">
+                                            Xem hồ sơ
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a asp-action="Details" asp-route-id="@item.MaHopDong" class="btn btn-secondary btn-sm py-1 px-2 mr-1">
+                                            Chi tiết & Khách ở
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@item.MaHopDong" class="btn btn-secondary btn-sm py-1 px-2">
+                                            Sửa
+                                        </a>
+                                    }
                                 </td>
                             </tr>
                         }

@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = $"Chi tiết hợp đồng #{Model.MaHopDong}";
+    bool daThanhLy = Model.TrangThai == "Đã thanh lý";
 }
 
 <!-- TIÊU ĐỀ & CỤM NÚT HÀNH ĐỘNG CHÍNH -->
@@ -11,7 +12,15 @@
         <h1 class="editorial-title mb-1">Hợp đồng #@Model.MaHopDong</h1>
         <p class="editorial-subtitle mb-0">
             Phòng: <strong style="color: #111827;">@(Model.MaPhongNavigation?.TenPhong ?? Model.MaPhong)</strong>
-            — Trạng thái: <strong style="color: #059669;">@Model.TrangThai</strong>
+            — Trạng thái:
+            @if (daThanhLy)
+            {
+                <strong style="color: #6B7280;">Đã thanh lý (Hồ sơ đóng)</strong>
+            }
+            else
+            {
+                <strong style="color: #059669;">@Model.TrangThai</strong>
+            }
         </p>
     </div>
 
@@ -19,38 +28,43 @@
         <a asp-action="Index" class="btn btn-secondary mr-2">
             <i class="fas fa-arrow-left fa-sm mr-1"></i>Danh sách HĐ
         </a>
-        <a asp-action="Edit" asp-route-id="@Model.MaHopDong" class="btn btn-secondary mr-2">
-            Chỉnh sửa HĐ
-        </a>
-        @if (Model.TrangThai == "Đang hiệu lực")
+
+        @if (!daThanhLy)
         {
+            <a asp-action="Edit" asp-route-id="@Model.MaHopDong" class="btn btn-secondary mr-2">
+                Chỉnh sửa HĐ
+            </a>
+
             <form asp-action="ThanhLy" asp-route-id="@Model.MaHopDong" method="post" class="mr-2"
-                  onsubmit="return confirm('Xác nhận thanh lý hợp đồng #@Model.MaHopDong và trả phòng về trạng thái Trống?');">
-                <button type="submit" class="btn btn-secondary" style="color: #B45309 !important; border-color: #FDE68A !important; background-color: #FFFBEB !important;">
-                    Thanh lý hợp đồng
+                  onsubmit="return confirm('Xác nhận THANH LÝ hợp đồng #@Model.MaHopDong?\n\nHệ thống sẽ tự động:\n1. Kiểm tra công nợ hóa đơn\n2. Đóng hợp đồng sang Đã thanh lý\n3. Giải phóng phòng về trạng thái Trống\n4. Rút toàn bộ khách ở khỏi danh sách đang cư trú.');">
+                <button type="submit" class="btn btn-secondary"
+                        style="color: #991B1B !important; border-color: #F87171 !important; background-color: #FEF2F2 !important; font-weight: 700 !important;">
+                    <i class="fas fa-file-excel fa-sm mr-1"></i>Thanh lý & Trả phòng
                 </button>
             </form>
+
+            <a asp-controller="KhachO" asp-action="Create" asp-route-maHopDong="@Model.MaHopDong" class="btn btn-primary btn-editorial-cta">
+                <i class="fas fa-user-plus fa-sm mr-2"></i>Thêm khách vào hợp đồng này
+            </a>
         }
-        <a asp-controller="KhachO" asp-action="Create" asp-route-maHopDong="@Model.MaHopDong" class="btn btn-primary btn-editorial-cta">
-            <i class="fas fa-user-plus fa-sm mr-2"></i>Thêm khách vào hợp đồng này
-        </a>
     </div>
 </div>
 
-
+<!-- KHUNG THÔNG BÁO THÀNH CÔNG (XANH) & CẢNH BÁO CÔNG NỢ (MÀU ĐỎ NỔI BẬT) -->
 @if (TempData["ThongBao"] != null)
 {
-    <div class="alert-editorial-danger mb-4 d-flex justify-content-between align-items-center">
-        <span><i class="fas fa-exclamation-triangle mr-2"></i>@TempData["Loi"]</span>
+    <div class="p-3 mb-4 bg-editorial-mint d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-check-circle mr-2"></i>@TempData["ThongBao"]</span>
     </div>
 }
-@if (!ViewData.ModelState.IsValid)
+@if (TempData["Loi"] != null)
 {
-    <div class="alert-editorial-danger mb-4">
-        <div class="font-weight-bold mb-1"><i class="fas fa-exclamation-circle mr-2"></i>Vui lòng kiểm tra lại các thông tin sau:</div>
-        <div asp-validation-summary="All" class="small mb-0"></div>
+    <div class="alert-editorial-danger mb-4 d-flex justify-content-between align-items-center"
+         style="background-color: #FEF2F2; border: 1px solid #F87171; color: #991B1B; padding: 1rem 1.25rem; border-radius: 2px; font-weight: 600;">
+        <span><i class="fas fa-exclamation-triangle mr-2" style="color: #DC2626;"></i>@TempData["Loi"]</span>
     </div>
 }
+
 <!-- THÔNG TIN TÓM TẮT HỢP ĐỒNG (4 Ô CHỈ SỐ) -->
 <div class="row mb-4">
     <div class="col-xl-3 col-md-6 mb-4">
@@ -102,27 +116,34 @@
     </div>
 </div>
 
-<!-- DANH SÁCH KHÁCH Ở TRONG HỢP ĐỒNG NÀY -->
+<!-- <!-- DANH SÁCH KHÁCH Ở TRONG HỢP ĐỒNG NÀY (HIỂN THỊ CẢ LỊCH SỬ KHI ĐÃ THANH LÝ) -->
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <div>
-            <span style="font-size: 1.05rem; font-weight: 700; color: #111827;">Danh sách thành viên cư trú trong hợp đồng #@Model.MaHopDong</span>
-            <p class="text-muted mb-0 mt-1">Bấm trực tiếp vào trạng thái tạm trú để chuyển đổi nhanh (1-Click).</p>
+            <span style="font-size: 1.05rem; font-weight: 700; color: #111827;">
+                @(daThanhLy ? $"Danh sách thành viên đã từng cư trú trong hợp đồng #{Model.MaHopDong}" : $"Danh sách thành viên đang cư trú trong hợp đồng #{Model.MaHopDong}")
+            </span>
+            <p class="text-muted mb-0 mt-1">
+                @(daThanhLy ? "Hồ sơ lưu trữ lịch sử nhân khẩu (Chỉ đọc — Không thể chỉnh sửa sau khi đã thanh lý)." : "Bấm trực tiếp vào trạng thái tạm trú để chuyển đổi nhanh (1-Click).")
+            </p>
         </div>
-        <a asp-controller="KhachO" asp-action="Create" asp-route-maHopDong="@Model.MaHopDong" class="btn btn-secondary btn-sm">
-            + Thêm thành viên
-        </a>
+        @if (!daThanhLy)
+        {
+            <a asp-controller="KhachO" asp-action="Create" asp-route-maHopDong="@Model.MaHopDong" class="btn btn-secondary btn-sm">
+                + Thêm thành viên
+            </a>
+        }
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table" width="100%" cellspacing="0">
                 <thead>
-                    <tr>
+                    <tr style="white-space: nowrap;">
                         <th>Mã khách</th>
                         <th>Họ và tên</th>
                         <th>Số CCCD / Định danh</th>
                         <th>Số điện thoại</th>
-                        <th class="text-center">Đăng ký tạm trú (1-Click)</th>
+                        <th class="text-center">Tình trạng tạm trú</th>
                         <th class="text-right">Thao tác</th>
                     </tr>
                 </thead>
@@ -131,7 +152,7 @@
                     {
                         <tr>
                             <td colspan="6" class="text-center py-5 text-muted">
-                                Chưa có thông tin khách ở nào trong hợp đồng này. Hãy bấm nút "+ Thêm khách vào hợp đồng này" ở góc trên.
+                                @(daThanhLy ? "Hợp đồng này chưa từng được khai báo thành viên nào trước khi thanh lý." : "Chưa có thông tin khách ở nào trong hợp đồng này. Hãy bấm nút '+ Thêm khách vào hợp đồng này' ở góc trên.")
                             </td>
                         </tr>
                     }
@@ -139,39 +160,58 @@
                     {
                         @foreach (var khach in Model.KhachOs)
                         {
-                            <tr>
-                                <td class="font-weight-bold" style="color: #111827;">@khach.MaKhach</td>
-                                <td class="font-weight-bold" style="color: #111827;">@khach.HoTen</td>
+                            string rowStyle = daThanhLy ? "background-color: #F9FAFB; color: #4B5563; white-space: nowrap;" : "white-space: nowrap;";
+
+                            <tr style="@rowStyle">
+                                <td class="font-weight-bold" style="color: @(daThanhLy ? "#4B5563" : "#111827");">@khach.MaKhach</td>
+                                <td class="font-weight-bold" style="color: @(daThanhLy ? "#4B5563" : "#111827");">@khach.HoTen</td>
                                 <td><code>@khach.Cccd</code></td>
                                 <td>@(string.IsNullOrEmpty(khach.SoDienThoai) ? "—" : khach.SoDienThoai)</td>
                                 <td class="text-center">
-                                    <form asp-controller="KhachO" asp-action="ToggleTamTru" asp-route-id="@khach.MaKhach" method="post" class="d-inline">
-                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
-                                        @if (khach.DaDangKyTamTru == true)
-                                        {
-                                            <button type="submit" class="status-badge-available" style="cursor: pointer;" title="Bấm để đổi trạng thái">
-                                                <i class="fas fa-check mr-1"></i>Đã đăng ký tạm trú
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <button type="submit" class="status-badge-maintenance" style="cursor: pointer;" title="Bấm để xác nhận đã đăng ký tạm trú">
-                                                <i class="fas fa-clock mr-1"></i>Chưa đăng ký
-                                            </button>
-                                        }
-                                    </form>
+                                    @if (daThanhLy)
+                                    {
+                                        <!-- Khi hợp đồng Đã thanh lý: Chỉ hiển thị trạng thái lịch sử, khóa nút bấm 1-Click -->
+                                        <span class="status-badge-occupied">
+                                            @(khach.DaDangKyTamTru == true ? "Đã ĐK tạm trú (Đã trả phòng)" : "Chưa ĐK (Đã trả phòng)")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <form asp-controller="KhachO" asp-action="ToggleTamTru" asp-route-id="@khach.MaKhach" method="post" class="d-inline">
+                                            <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                            @if (khach.DaDangKyTamTru == true)
+                                            {
+                                                <button type="submit" class="status-badge-available" style="cursor: pointer;" title="Bấm để đổi trạng thái">
+                                                    <i class="fas fa-check mr-1"></i>Đã đăng ký tạm trú
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="submit" class="status-badge-maintenance" style="cursor: pointer;" title="Bấm để xác nhận đã đăng ký tạm trú">
+                                                    <i class="fas fa-clock mr-1"></i>Chưa đăng ký
+                                                </button>
+                                            }
+                                        </form>
+                                    }
                                 </td>
                                 <td class="text-right">
-                                    <a asp-controller="KhachO" asp-action="Edit" asp-route-id="@khach.MaKhach" class="btn btn-secondary btn-sm py-1 px-2 mr-1">
-                                        Sửa
-                                    </a>
-                                    <form asp-controller="KhachO" asp-action="Delete" asp-route-id="@khach.MaKhach" method="post" class="d-inline"
-                                          onsubmit="return confirm('Xác nhận xóa mềm khách ở @khach.HoTen khỏi danh sách?');">
-                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
-                                        <button type="submit" class="btn btn-link btn-sm text-muted p-0" style="font-weight: 600; text-decoration: none;">
-                                            Xóa
-                                        </button>
-                                    </form>
+                                    @if (daThanhLy)
+                                    {
+                                        <span class="text-muted small font-weight-bold">Hồ sơ lưu trữ</span>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="KhachO" asp-action="Edit" asp-route-id="@khach.MaKhach" class="btn btn-secondary btn-sm py-1 px-2 mr-1">
+                                            Sửa
+                                        </a>
+                                        <form asp-controller="KhachO" asp-action="Delete" asp-route-id="@khach.MaKhach" method="post" class="d-inline"
+                                              onsubmit="return confirm('Xác nhận xóa mềm khách ở @khach.HoTen khỏi danh sách?');">
+                                            <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                            <button type="submit" class="btn btn-link btn-sm text-muted p-0" style="font-weight: 600; text-decoration: none;">
+                                                Xóa
+                                            </button>
+                                        </form>
+                                    }
                                 </td>
                             </tr>
                         }
