@@ -1,0 +1,147 @@
+﻿@model IEnumerable<QuanLyNhaTroBinhMinh.Models.NguoiDung>
+
+@{
+    ViewData["Title"] = "Tài khoản & Phân quyền";
+    string? vaiTroHienTai = ViewBag.VaiTroHienTai as string;
+    string? trangThaiHienTai = ViewBag.TrangThaiHienTai as string;
+}
+
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">VẬN HÀNH & HỆ THỐNG</span>
+        <h1 class="editorial-title mb-1">Tài khoản & Phân quyền</h1>
+        <p class="editorial-subtitle mb-0">Quản lý tài khoản đăng nhập của Chủ trọ (`VT_ADMIN`) và Khách thuê đại diện phòng (`VT_TENANT`).</p>
+    </div>
+
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Create" class="btn btn-primary btn-editorial-cta">
+            <i class="fas fa-user-shield fa-sm mr-2"></i>+ Cấp tài khoản mới
+        </a>
+    </div>
+</div>
+
+@if (TempData["ThongBao"] != null)
+{
+    <div class="p-3 mb-4 bg-editorial-mint d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-check-circle mr-2"></i>@TempData["ThongBao"]</span>
+    </div>
+}
+@if (TempData["Loi"] != null)
+{
+    <div class="alert-editorial-danger mb-4"
+         style="background-color: #FEF2F2; border: 1px solid #F87171; color: #991B1B; padding: 1rem 1.25rem; border-radius: 2px; font-weight: 600;">
+        <i class="fas fa-exclamation-triangle mr-2" style="color: #DC2626;"></i>@TempData["Loi"]
+    </div>
+}
+
+<div class="d-lg-flex justify-content-between align-items-center mb-4">
+    <div class="editorial-filter-bar mb-3 mb-lg-0">
+        <a asp-action="Index" asp-route-maVaiTro="" asp-route-trangThai=""
+           class="editorial-filter-btn @(string.IsNullOrEmpty(vaiTroHienTai) && string.IsNullOrEmpty(trangThaiHienTai) ? "active" : "")">
+            Tất cả (@ViewBag.TongTaiKhoan)
+        </a>
+        <a asp-action="Index" asp-route-maVaiTro="VT_ADMIN"
+           class="editorial-filter-btn @(vaiTroHienTai == "VT_ADMIN" ? "active" : "")">
+            Chủ trọ / Quản trị (@ViewBag.SoChuTro)
+        </a>
+        <a asp-action="Index" asp-route-maVaiTro="VT_TENANT"
+           class="editorial-filter-btn @(vaiTroHienTai == "VT_TENANT" ? "active" : "")">
+            Khách thuê (@ViewBag.SoKhachThue)
+        </a>
+        <a asp-action="Index" asp-route-trangThai="Khóa"
+           class="editorial-filter-btn @(trangThaiHienTai == "Khóa" ? "active" : "")">
+            Đang khóa (@ViewBag.SoBiKhoa)
+        </a>
+    </div>
+
+    <form asp-action="Index" method="get" class="d-flex" style="min-width: 300px;">
+        <input type="text" name="tuKhoa" value="@ViewBag.TuKhoaHienTai"
+               class="form-control mr-2" placeholder="Tìm tên đăng nhập, mã ND..." />
+        <button type="submit" class="btn btn-secondary px-3"><i class="fas fa-search"></i></button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Danh sách tài khoản hệ thống</span>
+        <span class="text-muted small">Bấm vào nhãn trạng thái để Khóa / Mở khóa nhanh (1-Click)</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0" width="100%" cellspacing="0">
+                <thead>
+                    <tr style="white-space: nowrap;">
+                        <th>Mã người dùng</th>
+                        <th>Tên đăng nhập</th>
+                        <th>Mật khẩu</th>
+                        <th>Vai trò phân quyền</th>
+                        <th>Hợp đồng / Phòng đại diện</th>
+                        <th class="text-center">Trạng thái (1-Click)</th>
+                        <th class="text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var hdHieuLuc = item.HopDongs.FirstOrDefault(h => h.TrangThai == "Hiệu lực");
+                        bool laAdminGoc = item.MaNguoiDung == "ND_ADMIN01";
+                        bool dangHoatDong = item.TrangThai == "Hoạt động";
+
+                        <tr style="white-space: nowrap; @(!dangHoatDong ? "background-color: #F9FAFB; color: #6B7280;" : "")">
+                            <td class="font-weight-bold" style="color: #111827;">@item.MaNguoiDung</td>
+                            <td class="font-weight-bold" style="color: #059669; font-size: 0.95rem;">@item.TenDangNhap</td>
+                            <td><code>@item.MatKhau</code></td>
+                            <td>
+                                @if (item.MaVaiTro == "VT_ADMIN")
+                                {
+                                    <span class="badge-editorial-mint"><i class="fas fa-crown mr-1"></i>@(item.MaVaiTroNavigation?.TenVaiTro ?? "Chủ trọ")</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge-occupied">@(item.MaVaiTroNavigation?.TenVaiTro ?? "Khách thuê")</span>
+                                }
+                            </td>
+                            <td>
+                                @if (hdHieuLuc != null)
+                                {
+                                    <a asp-controller="HopDong" asp-action="Details" asp-route-id="@hdHieuLuc.MaHopDong"
+                                       style="color: #111827; font-weight: 600; text-decoration: none;">
+                                        <span class="badge-editorial-mint mr-1">@hdHieuLuc.MaPhong</span>HĐ #@hdHieuLuc.MaHopDong
+                                    </a>
+                                }
+                                else if (item.MaVaiTro == "VT_ADMIN")
+                                {
+                                    <span class="text-muted small">Quản lý toàn bộ hệ thống</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">Chưa gán hợp đồng Hiệu lực</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (laAdminGoc)
+                                {
+                                    <span class="status-badge-available">Hoạt động (Mặc định)</span>
+                                }
+                                else
+                                {
+                                    <form asp-action="ToggleTrangThai" asp-route-id="@item.MaNguoiDung" method="post" class="d-inline">
+                                        <button type="submit" class="@(dangHoatDong ? "status-badge-available" : "status-badge-maintenance")"
+                                                style="cursor: pointer;" title="Bấm để đổi trạng thái Hoạt động / Khóa">
+                                            <i class="fas @(dangHoatDong ? "fa-check-circle" : "fa-lock") mr-1"></i>@item.TrangThai
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                            <td class="text-right">
+                                <a asp-action="Edit" asp-route-id="@item.MaNguoiDung" class="btn btn-secondary btn-sm py-1 px-3">
+                                    Sửa / Đổi MK
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,116 @@
+﻿@model IEnumerable<QuanLyNhaTroBinhMinh.Models.ThongBao>
+
+@{
+    ViewData["Title"] = "Bảng tin thông báo";
+    string? cheDoHienTai = ViewBag.CheDoHienTai as string;
+}
+
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">VẬN HÀNH & HỆ THỐNG</span>
+        <h1 class="editorial-title mb-1">Bảng tin thông báo chung</h1>
+        <p class="editorial-subtitle mb-0">Phát hành thông báo nhắc đóng tiền trọ, lịch bảo trì điện nước và nội quy an ninh tới toàn bộ cư dân.</p>
+    </div>
+
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Create" class="btn btn-primary btn-editorial-cta">
+            <i class="fas fa-bullhorn fa-sm mr-2"></i>+ Đăng thông báo mới
+        </a>
+    </div>
+</div>
+
+@if (TempData["ThongBao"] != null)
+{
+    <div class="p-3 mb-4 bg-editorial-mint d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-check-circle mr-2"></i>@TempData["ThongBao"]</span>
+    </div>
+}
+
+<div class="d-lg-flex justify-content-between align-items-center mb-4">
+    <div class="editorial-filter-bar mb-3 mb-lg-0">
+        <a asp-action="Index" asp-route-cheDo=""
+           class="editorial-filter-btn @(string.IsNullOrEmpty(cheDoHienTai) ? "active" : "")">
+            Đang hiển thị trên bảng tin (@ViewBag.TongHienHanh)
+        </a>
+        <a asp-action="Index" asp-route-cheDo="DaXoa"
+           class="editorial-filter-btn @(cheDoHienTai == "DaXoa" ? "active" : "")">
+            Thông báo cũ đã gỡ (@ViewBag.SoDaXoa)
+        </a>
+    </div>
+
+    <form asp-action="Index" method="get" class="d-flex" style="min-width: 300px;">
+        <input type="hidden" name="cheDo" value="@cheDoHienTai" />
+        <input type="text" name="tuKhoa" value="@ViewBag.TuKhoaHienTai"
+               class="form-control mr-2" placeholder="Tìm tiêu đề, nội dung..." />
+        <button type="submit" class="btn btn-secondary px-3"><i class="fas fa-search"></i></button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Danh sách bản tin phát hành</span>
+        <span class="text-muted small">Hiển thị @Model.Count() bản tin</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0" width="100%" cellspacing="0">
+                <thead>
+                    <tr style="white-space: nowrap;">
+                        <th>Mã TB</th>
+                        <th>Tiêu đề & Nội dung thông báo</th>
+                        <th>Người đăng</th>
+                        <th>Thời gian phát hành</th>
+                        <th class="text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">Chưa có bản tin thông báo nào.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="font-weight-bold" style="color: #111827; white-space: nowrap;">#@item.MaThongBao</td>
+                                <td style="min-width: 340px;">
+                                    <div class="font-weight-bold mb-1" style="color: #111827; font-size: 1rem;">@item.TieuDe</div>
+                                    <div class="text-muted small" style="white-space: pre-line;">@item.NoiDung</div>
+                                </td>
+                                <td style="white-space: nowrap;">
+                                    <span class="badge-editorial-mint">@(item.MaNguoiDungTaoNavigation?.TenDangNhap ?? item.MaNguoiDungTao ?? "admin")</span>
+                                </td>
+                                <td class="text-muted" style="white-space: nowrap;">@(item.NgayTao?.ToString("dd/MM/yyyy HH:mm"))</td>
+                                <td class="text-right" style="white-space: nowrap;">
+                                    @if (item.DaXoa == true)
+                                    {
+                                        <form asp-action="Restore" asp-route-id="@item.MaThongBao" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-primary btn-sm py-1 px-3" style="background-color: #059669; border-color: #059669;">
+                                                Đăng lại
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@item.MaThongBao" class="btn btn-secondary btn-sm py-1 px-3 mr-2">
+                                            Sửa
+                                        </a>
+                                        <form asp-action="Delete" asp-route-id="@item.MaThongBao" method="post" class="d-inline"
+                                              onsubmit="return confirm('Xác nhận gỡ bản tin #@item.MaThongBao khỏi bảng tin khách thuê?');">
+                                            <button type="submit" class="btn btn-link btn-sm text-muted p-0" style="font-weight: 600; text-decoration: none;">
+                                                Gỡ tin
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -10,6 +10,10 @@
     decimal daThu = Model.ThanhToans.Sum(t => t.SoTienTra);
     decimal conNo = Math.Max(0, tongTienHoaDon - daThu);
     bool daTatToan = Model.TrangThai == "Đã thanh toán";
+
+    int phanTramHoanThanh = tongTienHoaDon > 0
+        ? (int)Math.Min(100, Math.Round((daThu / tongTienHoaDon) * 100))
+        : 100;
 }
 
 <div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
@@ -48,7 +52,7 @@
 }
 
 <div class="row">
-    <!-- CỘT TRÁI (7 PHẦN): BẢNG KÊ CHI TIẾT HÓA ĐƠN (PHƯƠNG ÁN A) -->
+    <!-- CỘT TRÁI (7 PHẦN): BẢNG KÊ CHI TIẾT HÓA ĐƠN -->
     <div class="col-xl-7 col-lg-7 mb-4">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -68,10 +72,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- DÒNG 1: TIỀN THUÊ PHÒNG CỨNG -->
+                            <!-- DÒNG 1: TIỀN THUÊ PHÒNG CỨNG (ĐÃ FIX LẶP CHỮ "PHÒNG") -->
                             <tr style="white-space: nowrap;">
                                 <td class="font-weight-bold" style="color: #111827;">1. Tiền thuê phòng cứng</td>
-                                <td class="text-muted">Phòng @(phong?.TenPhong ?? Model.MaHopDongNavigation?.MaPhong)</td>
+                                <td class="text-muted">@(phong?.TenPhong ?? $"Phòng {Model.MaHopDongNavigation?.MaPhong}")</td>
                                 <td class="text-right">@giaPhongCung.ToString("N0")đ</td>
                                 <td class="text-center">1</td>
                                 <td class="text-right font-weight-bold" style="color: #111827;">@giaPhongCung.ToString("N0")đ</td>
@@ -124,74 +128,73 @@
         </div>
     </div>
 
-    <!-- CỘT PHẢI (5 PHẦN): GHI NHẬN THU TIỀN & LỊCH SỬ GIAO DỊCH -->
+    <!-- CỘT PHẢI (5 PHẦN): TIẾN ĐỘ TỰ ĐỘNG & LỊCH SỬ CÁC ĐỢT KHÁCH THANH TOÁN (ĐÃ FIX TRÀN BẢNG) -->
     <div class="col-xl-5 col-lg-5 mb-4">
-        @if (!daTatToan)
-        {
-            <div class="card mb-4">
-                <div class="card-header" style="background-color: #ECFDF5 !important; color: #059669 !important;">
-                    <i class="fas fa-hand-holding-usd mr-2"></i>Ghi nhận thu tiền (Hỗ trợ trả từng phần)
-                </div>
-                <div class="card-body">
-                    <form asp-action="GhiNhanThanhToan" method="post">
-                        <input type="hidden" name="maHoaDon" value="@Model.MaHoaDon" />
-
-                        <div class="form-group mb-3">
-                            <label class="editorial-label">Số tiền khách đóng đợt này (VNĐ) *</label>
-                            <input type="number" name="soTienTra" value="@conNo" min="1000" max="@conNo" step="1000" class="form-control font-weight-bold" required />
-                            <small class="text-muted">Mặc định điền số tiền còn nợ (@conNo.ToString("N0")đ). Có thể sửa nhỏ hơn nếu khách đóng trước 1 phần.</small>
-                        </div>
-
-                        <div class="form-group mb-4">
-                            <label class="editorial-label">Phương thức thanh toán *</label>
-                            <select name="phuongThuc" class="form-control">
-                                <option value="Chuyển khoản">Chuyển khoản ngân hàng</option>
-                                <option value="Tiền mặt">Tiền mặt trực tiếp</option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary btn-editorial-cta btn-block">
-                            <i class="fas fa-check-circle mr-2"></i>Xác nhận thu tiền
-                        </button>
-                    </form>
-                </div>
+        <!-- Khung Tiến độ đối soát tự động từ Cổng Khách Thuê -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Tiến độ khách thanh toán</span>
+                <span class="font-weight-bold" style="color: #059669;">@phanTramHoanThanh%</span>
             </div>
-        }
+            <div class="card-body">
+                <div class="progress mb-3" style="height: 8px; background-color: #E5E7EB; border-radius: 2px;">
+                    <div class="progress-bar" role="progressbar"
+                         style="width: @phanTramHoanThanh%; background-color: #059669;"
+                         aria-valuenow="@phanTramHoanThanh" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <p class="text-muted small mb-0">
+                    <i class="fas fa-sync-alt mr-1" style="color: #059669;"></i>
+                    Hệ thống tự động ghi nhận từng đợt khi khách thuê thực hiện thanh toán và tự động chuyển sang <strong>Đã thanh toán</strong> khi thu đủ 100%.
+                </p>
+            </div>
+        </div>
 
-        <!-- Lịch sử các đợt thanh toán của hóa đơn này -->
+        <!-- Bảng Lịch sử các đợt thu tiền (Gói gọn 3 cột, không bao giờ tràn khung) -->
         <div class="card">
-            <div class="card-header">Lịch sử các đợt thu tiền (@Model.ThanhToans.Count đợt)</div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Lịch sử các đợt thu tiền</span>
+                <span class="badge-editorial-mint">@Model.ThanhToans.Count đợt</span>
+            </div>
             <div class="card-body p-0">
-                <table class="table mb-0">
-                    <thead>
-                        <tr style="white-space: nowrap;">
-                            <th>Mã GD</th>
-                            <th>Ngày thu</th>
-                            <th>Phương thức</th>
-                            <th class="text-right">Số tiền</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (!Model.ThanhToans.Any())
-                        {
+                <div class="table-responsive">
+                    <table class="table mb-0" width="100%" cellspacing="0">
+                        <thead>
                             <tr>
-                                <td colspan="4" class="text-center py-4 text-muted">Chưa có giao dịch thanh toán nào.</td>
+                                <th style="padding: 0.75rem 1rem;">Giao dịch / Thời gian</th>
+                                <th class="text-center" style="padding: 0.75rem 0.5rem;">Phương thức</th>
+                                <th class="text-right" style="padding: 0.75rem 1rem;">Số tiền</th>
                             </tr>
-                        }
-                        else
-                        {
-                            @foreach (var tt in Model.ThanhToans.OrderByDescending(x => x.NgayTra))
+                        </thead>
+                        <tbody>
+                            @if (!Model.ThanhToans.Any())
                             {
-                                <tr style="white-space: nowrap;">
-                                    <td class="font-weight-bold">#@tt.MaThanhToan</td>
-                                    <td>@(tt.NgayTra?.ToString("dd/MM/yyyy HH:mm"))</td>
-                                    <td><span class="badge-editorial-mint">@tt.PhuongThuc</span></td>
-                                    <td class="text-right font-weight-bold" style="color: #059669;">+@tt.SoTienTra.ToString("N0")đ</td>
+                                <tr>
+                                    <td colspan="3" class="text-center py-4 text-muted">
+                                        Khách thuê chưa thực hiện đợt thanh toán nào cho hóa đơn này.
+                                    </td>
                                 </tr>
                             }
-                        }
-                    </tbody>
-                </table>
+                            else
+                            {
+                                @foreach (var tt in Model.ThanhToans.OrderByDescending(x => x.NgayTra))
+                                {
+                                    <tr>
+                                        <td style="padding: 0.85rem 1rem;">
+                                            <div class="font-weight-bold" style="color: #111827; font-size: 0.875rem;">#@tt.MaThanhToan</div>
+                                            <small class="text-muted">@(tt.NgayTra?.ToString("dd/MM/yyyy HH:mm"))</small>
+                                        </td>
+                                        <td class="text-center align-middle" style="padding: 0.85rem 0.5rem;">
+                                            <span class="badge-editorial-mint">@tt.PhuongThuc</span>
+                                        </td>
+                                        <td class="text-right align-middle font-weight-bold" style="padding: 0.85rem 1rem; color: #059669; white-space: nowrap;">
+                                            +@tt.SoTienTra.ToString("N0")đ
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

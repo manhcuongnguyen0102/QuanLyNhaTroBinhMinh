@@ -17,25 +17,36 @@ public class DichVuController : Controller
     [HttpGet]
     public async Task<IActionResult> Index(string? loaiDichVu)
     {
-        var query = _context.DichVus.AsNoTracking().AsQueryable();
+        IQueryable<DichVu> query;
 
-        if (loaiDichVu == "CoDinh")
+        if (loaiDichVu == "DaXoa")
         {
-            query = query.Where(d => d.LaCoDinh == true);
+            // Dùng IgnoreQueryFilters() để lấy các dịch vụ đã bị xóa mềm (DaXoa == true)
+            query = _context.DichVus.IgnoreQueryFilters().AsNoTracking().Where(d => d.DaXoa == true);
         }
-        else if (loaiDichVu == "TheoChiSo")
+        else
         {
-            query = query.Where(d => d.LaCoDinh != true);
+            query = _context.DichVus.AsNoTracking().AsQueryable();
+
+            if (loaiDichVu == "CoDinh")
+            {
+                query = query.Where(d => d.LaCoDinh == true);
+            }
+            else if (loaiDichVu == "TheoChiSo")
+            {
+                query = query.Where(d => d.LaCoDinh != true);
+            }
         }
 
-        var allServices = await _context.DichVus.AsNoTracking().ToListAsync();
-        ViewBag.TongDichVu = allServices.Count;
-        ViewBag.SoTheoChiSo = allServices.Count(d => d.LaCoDinh != true);
-        ViewBag.SoCoDinh = allServices.Count(d => d.LaCoDinh == true);
+        var activeServices = await _context.DichVus.AsNoTracking().ToListAsync();
+        ViewBag.TongDichVu = activeServices.Count;
+        ViewBag.SoTheoChiSo = activeServices.Count(d => d.LaCoDinh != true);
+        ViewBag.SoCoDinh = activeServices.Count(d => d.LaCoDinh == true);
+        ViewBag.SoDaXoa = await _context.DichVus.IgnoreQueryFilters().CountAsync(d => d.DaXoa == true);
         ViewBag.LoaiHienTai = loaiDichVu;
 
         var danhSach = await query
-            .OrderBy(d => d.LaCoDinh == true ? 1 : 0) // Ưu tiên Điện/Nước lên đầu
+            .OrderBy(d => d.LaCoDinh == true ? 1 : 0)
             .ThenBy(d => d.MaDichVu)
             .ToListAsync();
 
@@ -146,6 +157,26 @@ public class DichVuController : Controller
             _context.DichVus.Remove(dichVu); // Tự động chuyển thành DaXoa = true nhờ SoftDelete.cs
             await _context.SaveChangesAsync();
             TempData["ThongBao"] = $"Đã xóa mềm dịch vụ {dichVu.TenDichVu} ({dichVu.MaDichVu}).";
+        }
+
+        return RedirectToAction(nameof(Index));
+
+    }
+    // 7. KHÔI PHỤC DỊCH VỤ ĐÃ XÓA MỀM (1-CLICK)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Restore(string id)
+    {
+        var dichVu = await _context.DichVus
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(d => d.MaDichVu == id);
+
+        if (dichVu != null)
+        {
+            dichVu.DaXoa = false;
+            _context.DichVus.Update(dichVu);
+            await _context.SaveChangesAsync();
+            TempData["ThongBao"] = $"Đã khôi phục dịch vụ {dichVu.TenDichVu} ({dichVu.MaDichVu}) hoạt động trở lại.";
         }
 
         return RedirectToAction(nameof(Index));

@@ -174,14 +174,19 @@ public class HoaDonController : Controller
                 continue;
             }
 
-            // BẮT ĐẦU TÍNH TOÁN HÓA ĐƠN THEO PHƯƠNG ÁN A
-            string maHoaDonMoi = $"HD{nam % 100}{thang:D2}_{hd.MaPhong}_{Random.Shared.Next(10, 99)}";
+            string suffixNgauNhien = $"{Random.Shared.Next(100, 999)}";
+            string maHoaDonMoi = $"HD{nam % 100}{thang:D2}_{hd.MaPhong?.Trim()}_{suffixNgauNhien}";
+            if (maHoaDonMoi.Length > 18)
+            {
+                maHoaDonMoi = $"HD{nam % 100}{thang:D2}_{suffixNgauNhien}";
+            }
+
             decimal giaThueCung = hd.MaPhongNavigation?.GiaThueCung ?? 0;
             decimal tongTienDichVu = 0;
 
             var danhSachChiTiet = new List<ChiTietHoaDon>();
 
-            // A. Tính tiền Điện (DV_DIEN) nếu sản lượng > 0 (Khớp CK__ChiTietHo__SoLuo__7F2BE32F: SoLuong > 0)
+            // A. Tính tiền Điện (DV_DIEN) - Mã chi tiết gọn 13 ký tự (VD: CTD2610_48219)
             int soDien = (chiSo.DienMoi ?? 0) - (chiSo.DienCu ?? 0);
             if (soDien > 0 && bangGiaDichVu.TryGetValue("DV_DIEN", out var dvDien))
             {
@@ -190,7 +195,7 @@ public class HoaDonController : Controller
 
                 danhSachChiTiet.Add(new ChiTietHoaDon
                 {
-                    MaChiTiet = $"CT_{maHoaDonMoi}_DIEN",
+                    MaChiTiet = $"CTD{nam % 100}{thang:D2}_{Random.Shared.Next(10000, 99999)}",
                     MaHoaDon = maHoaDonMoi,
                     MaDichVu = dvDien.MaDichVu,
                     SoLuong = soDien,
@@ -200,7 +205,7 @@ public class HoaDonController : Controller
                 });
             }
 
-            // B. Tính tiền Nước (DV_NUOC) nếu sản lượng > 0
+            // B. Tính tiền Nước (DV_NUOC) - Mã chi tiết gọn 13 ký tự (VD: CTN2610_51920)
             int soNuoc = (chiSo.NuocMoi ?? 0) - (chiSo.NuocCu ?? 0);
             if (soNuoc > 0 && bangGiaDichVu.TryGetValue("DV_NUOC", out var dvNuoc))
             {
@@ -209,7 +214,7 @@ public class HoaDonController : Controller
 
                 danhSachChiTiet.Add(new ChiTietHoaDon
                 {
-                    MaChiTiet = $"CT_{maHoaDonMoi}_NUOC",
+                    MaChiTiet = $"CTN{nam % 100}{thang:D2}_{Random.Shared.Next(10000, 99999)}",
                     MaHoaDon = maHoaDonMoi,
                     MaDichVu = dvNuoc.MaDichVu,
                     SoLuong = soNuoc,
@@ -219,7 +224,7 @@ public class HoaDonController : Controller
                 });
             }
 
-            // C. Cộng các Dịch vụ cố định đã đăng ký trong DichVuHopDong (VD: DV_WIFI...)
+            // C. Cộng các Dịch vụ cố định đã đăng ký trong DichVuHopDong (VD: DV_WIFI, Vệ sinh...)
             int sttDv = 1;
             foreach (var dvhd in hd.DichVuHopDongs)
             {
@@ -233,7 +238,7 @@ public class HoaDonController : Controller
 
                     danhSachChiTiet.Add(new ChiTietHoaDon
                     {
-                        MaChiTiet = $"CT_{maHoaDonMoi}_DV{sttDv++}",
+                        MaChiTiet = $"CTV{sttDv++}{nam % 100}{thang:D2}_{Random.Shared.Next(1000, 9999)}",
                         MaHoaDon = maHoaDonMoi,
                         MaDichVu = dvCoDinh.MaDichVu,
                         SoLuong = 1,

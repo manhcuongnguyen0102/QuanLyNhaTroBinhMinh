@@ -50,18 +50,20 @@
     </div>
 </div>
 
-<!-- KHUNG THÔNG BÁO THÀNH CÔNG (XANH) & CẢNH BÁO CÔNG NỢ (MÀU ĐỎ NỔI BẬT) -->
+<!-- KHUNG THÔNG BÁO THÀNH CÔNG (MÀU XANH) -->
 @if (TempData["ThongBao"] != null)
 {
     <div class="p-3 mb-4 bg-editorial-mint d-flex justify-content-between align-items-center">
         <span><i class="fas fa-check-circle mr-2"></i>@TempData["ThongBao"]</span>
     </div>
 }
-@if (TempData["ThongBao"] != null)
+
+<!-- KHUNG CẢNH BÁO LỖI (MÀU ĐỎ - CHỈ HIỆN KHI CÓ TempData["Loi"]) -->
+@if (TempData["Loi"] != null)
 {
     <div class="alert-editorial-danger mb-4 d-flex justify-content-between align-items-center"
          style="background-color: #FEF2F2; border: 1px solid #F87171; color: #991B1B; padding: 1rem 1.25rem; border-radius: 2px; font-weight: 600;">
-        <span><i class="fas fa-exclamation-triangle mr-2" style="color: #DC2626;"></i>@TempData["ThongBao"]</span>
+        <span><i class="fas fa-exclamation-triangle mr-2" style="color: #DC2626;"></i>@TempData["Loi"]</span>
     </div>
 }
 

@@ -8,7 +8,7 @@
     <div>
         <span class="badge-editorial-mint mb-2 d-inline-block">TÀI CHÍNH & DỊCH VỤ</span>
         <h1 class="editorial-title mb-1">Sổ chốt chỉ số điện nước</h1>
-        <p class="editorial-subtitle mb-0">Ghi nhận chỉ số đồng hồ hàng tháng làm căn cứ tự động bóc tách chi tiết hóa đơn.</p>
+        <p class="editorial-subtitle mb-0">Ghi nhận chỉ số đồng hồ hàng tháng kèm bộ ảnh minh chứng số Điện và số Nước.</p>
     </div>
 
     <div class="mt-4 mt-sm-0">
@@ -55,7 +55,7 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>Lịch sử chốt đồng hồ Điện & Nước</span>
-        <span class="text-muted small">Hiển thị @Model.Count() bản ghi</span>
+        <span class="text-muted small">Bấm vào ảnh hoặc nút "Xem ảnh" để phóng to toàn bộ ảnh minh chứng</span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -69,6 +69,7 @@
                         <th class="text-right">Tiêu thụ Điện</th>
                         <th class="text-right">Nước (Cũ → Mới)</th>
                         <th class="text-right">Tiêu thụ Nước</th>
+                        <th class="text-center">Ảnh đồng hồ (Điện & Nước)</th>
                         <th class="text-right">Thao tác</th>
                     </tr>
                 </thead>
@@ -76,7 +77,7 @@
                     @if (!Model.Any())
                     {
                         <tr>
-                            <td colspan="8" class="text-center py-5 text-muted">
+                            <td colspan="9" class="text-center py-5 text-muted">
                                 Chưa có dữ liệu chốt chỉ số điện nước nào khớp với điều kiện lọc.
                             </td>
                         </tr>
@@ -87,6 +88,14 @@
                         {
                             int soDien = (item.DienMoi ?? 0) - (item.DienCu ?? 0);
                             int soNuoc = (item.NuocMoi ?? 0) - (item.NuocCu ?? 0);
+
+                            var dsAnh = string.IsNullOrWhiteSpace(item.AnhDongHo)
+                            ? Array.Empty<string>()
+                            : item.AnhDongHo.Split(';', StringSplitOptions.RemoveEmptyEntries)
+                            .Where(p => p.StartsWith("/uploads/"))
+                            .ToArray();
+
+                            string tieuDeModal = $"Phòng {item.MaPhong} ({item.MaPhongNavigation?.TenPhong}) — Kỳ Tháng {item.Thang:D2}/{item.Nam} — Điện: {item.DienCu}→{item.DienMoi} ({soDien} kWh) | Nước: {item.NuocCu}→{item.NuocMoi} ({soNuoc} Khối)";
 
                             <tr style="white-space: nowrap;">
                                 <td class="font-weight-bold" style="color: #111827;">#@item.MaChiSo</td>
@@ -109,9 +118,29 @@
                                 <td class="text-right">
                                     <span class="status-badge-available">@soNuoc Khối</span>
                                 </td>
+                                <td class="text-center">
+                                    @if (dsAnh.Length > 0)
+                                    {
+                                        <div class="d-inline-flex align-items-center" style="gap: 0.35rem; cursor: pointer;"
+                                             onclick="xemTatCaAnhDongHo('@Html.Raw(item.AnhDongHo)', '@Html.Raw(tieuDeModal)')">
+                                            @foreach (var anhUrl in dsAnh.Take(2))
+                                            {
+                                                <img src="@anhUrl" alt="Đồng hồ"
+                                                     style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #059669; border-radius: 2px;" />
+                                            }
+                                            <span class="badge-editorial-mint ml-1">
+                                                <i class="fas fa-search-plus mr-1"></i>Phóng to (@dsAnh.Length ảnh)
+                                            </span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">Chưa có ảnh</span>
+                                    }
+                                </td>
                                 <td class="text-right">
                                     <a asp-action="Edit" asp-route-id="@item.MaChiSo" class="btn btn-secondary btn-sm py-1 px-3">
-                                        Sửa chỉ số
+                                        Sửa / Thêm ảnh
                                     </a>
                                 </td>
                             </tr>
@@ -122,3 +151,63 @@
         </div>
     </div>
 </div>
+
+<!-- MODAL LIGHTBOX PHÓNG TO TẤT CẢ ẢNH ĐỒNG HỒ ĐIỆN & NƯỚC -->
+<div class="modal fade" id="modalPhongToAnh" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 2px; border: 1px solid #E5E7EB;">
+            <div class="modal-header" style="border-bottom: 1px solid #E5E7EB;">
+                <div>
+                    <span class="badge-editorial-mint mb-1 d-inline-block">BẰNG CHỨNG CHỈ SỐ ĐỒNG HỒ</span>
+                    <h5 class="modal-title font-weight-bold" id="tieuDeModalAnh" style="color: #111827;"></h5>
+                </div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="noiDungModalAnh" style="background-color: #F9FAFB; max-height: 82vh; overflow-y: auto;">
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function xemTatCaAnhDongHo(chuoiDuongDan, tieuDe) {
+            const dsAnh = chuoiDuongDan.split(';').filter(x => x && x.trim().length > 0);
+            document.getElementById('tieuDeModalAnh').innerText = tieuDe;
+
+            const container = document.getElementById('noiDungModalAnh');
+            container.innerHTML = '';
+
+            const row = document.createElement('div');
+            row.className = 'row';
+
+            dsAnh.forEach((url, idx) => {
+                const col = document.createElement('div');
+                col.className = dsAnh.length === 1 ? 'col-12 mb-3' : 'col-md-6 mb-4';
+                const nhanLoai = idx === 0 ? 'Ảnh minh chứng #1 (Đồng hồ Điện / Nước)' : `Ảnh minh chứng #${idx + 1}`;
+
+                col.innerHTML = `
+                    <div class="p-3 bg-white h-100 d-flex flex-column justify-content-between" style="border: 1px solid #E5E7EB; border-radius: 2px;">
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #F3F4F6;">
+                            <strong style="color: #111827;">
+                                <span class="badge-editorial-mint mr-2">ẢNH ${idx + 1}/${dsAnh.length}</span>${nhanLoai}
+                            </strong>
+                            <a href="${url}" target="_blank" class="small font-weight-bold" style="color: #059669; text-decoration: none;">
+                                <i class="fas fa-external-link-alt mr-1"></i>Mở ảnh gốc
+                            </a>
+                        </div>
+                        <div class="text-center" style="background-color: #111827; padding: 8px; border-radius: 2px;">
+                            <img src="${url}" alt="Ảnh đồng hồ ${idx + 1}" class="img-fluid" style="max-height: 520px; object-fit: contain;" />
+                        </div>
+                    </div>
+                `;
+                row.appendChild(col);
+            });
+
+            container.appendChild(row);
+            $('#modalPhongToAnh').modal('show');
+        }
+    </script>
+}

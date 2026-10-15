@@ -2,11 +2,16 @@
 
 @{
     ViewData["Title"] = "Chỉnh sửa chỉ số điện nước";
+    var dsAnhHienTai = string.IsNullOrWhiteSpace(Model.AnhDongHo)
+        ? Array.Empty<string>()
+        : Model.AnhDongHo.Split(';', StringSplitOptions.RemoveEmptyEntries)
+                         .Where(p => p.StartsWith("/uploads/"))
+                         .ToArray();
 }
 
 <div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
     <div>
-        <span class="badge-editorial-mint mb-2 d-inline-block">ĐIỀU CHỈNH CHỈ SỐ</span>
+        <span class="badge-editorial-mint mb-2 d-inline-block">ĐIỀU CHỈNH CHỈ SỐ & ẢNH MINH CHỨNG</span>
         <h1 class="editorial-title mb-1">Sửa phiếu chốt #@Model.MaChiSo</h1>
         <p class="editorial-subtitle mb-0">Phòng: @Model.MaPhong — Kỳ: Tháng @(Model.Thang?.ToString("D2"))/@Model.Nam</p>
     </div>
@@ -30,7 +35,7 @@
         <div class="card">
             <div class="card-header">Hồ sơ chốt đồng hồ — Mã: @Model.MaChiSo</div>
             <div class="card-body">
-                <form asp-action="Edit" method="post">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data">
                     <div class="form-row">
                         <div class="form-group col-md-3 mb-4">
                             <label asp-for="MaChiSo" class="editorial-label">Mã phiếu (Cố định)</label>
@@ -76,8 +81,37 @@
                     </div>
 
                     <div class="form-group mb-5">
-                        <label asp-for="AnhDongHo" class="editorial-label">Ghi chú / Ảnh đồng hồ</label>
-                        <input asp-for="AnhDongHo" class="form-control" />
+                        <label class="editorial-label">Bộ ảnh chụp đồng hồ Điện & Nước (@dsAnhHienTai.Length ảnh hiện có)</label>
+                        <div class="p-3" style="background-color: #FAFAFA; border: 1px dashed #D1D5DB; border-radius: 2px;">
+                            @if (dsAnhHienTai.Length > 0)
+                            {
+                                <div class="small font-weight-bold text-muted mb-2">
+                                    Các ảnh đang lưu (Bỏ tích nếu muốn gỡ bớt ảnh, bấm vào ảnh để phóng to):
+                                </div>
+                                <div class="d-flex flex-wrap mb-3" style="gap: 0.75rem;">
+                                    @for (int i = 0; i < dsAnhHienTai.Length; i++)
+                                    {
+                                        var url = dsAnhHienTai[i];
+                                        <div class="p-2 bg-white" style="border: 1px solid #E5E7EB; border-radius: 2px; width: 165px;">
+                                            <img src="@url" alt="Ảnh @(i + 1)"
+                                                 onclick="phongToAnhEdit('@url', 'Ảnh minh chứng #@(i + 1)')"
+                                                 style="width: 100%; height: 115px; object-fit: cover; cursor: zoom-in; border: 1px solid #F3F4F6;" />
+                                            <div class="custom-control custom-checkbox mt-2">
+                                                <input type="checkbox" class="custom-control-input" id="chkAnh_@i" name="anhGiuLai" value="@url" checked />
+                                                <label class="custom-control-label small font-weight-bold" for="chkAnh_@i" style="color: #111827;">
+                                                    Giữ lại ảnh #@(i + 1)
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                            <label class="small font-weight-bold d-block" style="color: #059669;">
+                                + Tải thêm ảnh đồng hồ mới từ máy tính (Có thể chọn nhiều ảnh):
+                            </label>
+                            <input type="file" name="filesAnhDongHo" multiple accept=".jpg,.jpeg,.png,.webp,image/*" class="form-control-file" />
+                        </div>
                     </div>
 
                     <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid #E5E7EB;">
@@ -91,3 +125,30 @@
         </div>
     </div>
 </div>
+
+<!-- MODAL PHÓNG TO ẢNH TRÊN TRANG EDIT -->
+<div class="modal fade" id="modalAnhEdit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 2px;">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-bold" id="lblModalEdit" style="color: #111827;"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center" style="background-color: #111827;">
+                <img id="imgModalEdit" src="#" class="img-fluid" style="max-height: 75vh;" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function phongToAnhEdit(url, title) {
+            document.getElementById('lblModalEdit').innerText = title;
+            document.getElementById('imgModalEdit').src = url;
+            $('#modalAnhEdit').modal('show');
+        }
+    </script>
+}

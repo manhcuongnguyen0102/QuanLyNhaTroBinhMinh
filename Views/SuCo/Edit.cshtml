@@ -1,0 +1,76 @@
+﻿@model QuanLyNhaTroBinhMinh.Models.SuCo
+
+@{
+    ViewData["Title"] = "Cập nhật xử lý sự cố";
+}
+
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">TIẾN ĐỘ SỬA CHỮA & HẠCH TOÁN CHI PHÍ</span>
+        <h1 class="editorial-title mb-1">Cập nhật sự cố #@Model.MaSuCo</h1>
+        <p class="editorial-subtitle mb-0">Cập nhật trạng thái sửa chữa và ghi nhận chi phí thực tế phát sinh.</p>
+    </div>
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left fa-sm mr-2"></i>Quay lại danh sách</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-7 col-lg-9">
+        <div class="card">
+            <div class="card-header">Hồ sơ sự cố — Mã: @Model.MaSuCo</div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" asp-for="NgayTao" />
+
+                    <div class="form-row">
+                        <div class="form-group col-md-4 mb-4">
+                            <label asp-for="MaSuCo" class="editorial-label">Mã sự cố (Cố định)</label>
+                            <input asp-for="MaSuCo" class="form-control" readonly style="background-color: #F9FAFB !important;" />
+                        </div>
+
+                        <div class="form-group col-md-8 mb-4">
+                            <label asp-for="MaPhong" class="editorial-label">Phòng xảy ra sự cố</label>
+                            <select asp-for="MaPhong" asp-items="ViewBag.DanhSachPhong" class="form-control">
+                                <option value="">-- Khu vực sinh hoạt chung --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label asp-for="MoTa" class="editorial-label">Mô tả sự cố *</label>
+                        <textarea asp-for="MoTa" rows="3" class="form-control" required></textarea>
+                    </div>
+
+                    <div class="form-row mb-4">
+                        <div class="form-group col-md-4">
+                            <label asp-for="MaNguoiDungBao" class="editorial-label">Người báo</label>
+                            <select asp-for="MaNguoiDungBao" asp-items="ViewBag.DanhSachNguoiDung" class="form-control"></select>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label asp-for="TrangThai" class="editorial-label">Trạng thái xử lý *</label>
+                            <select asp-for="TrangThai" class="form-control font-weight-bold">
+                                <option value="Chờ xử lý">Chờ xử lý</option>
+                                <option value="Đang sửa">Đang sửa</option>
+                                <option value="Đã hoàn thành">Đã hoàn thành</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label asp-for="ChiPhiSua" class="editorial-label">Chi phí sửa chữa (VNĐ)</label>
+                            <input asp-for="ChiPhiSua" type="number" min="0" step="1000" class="form-control font-weight-bold" />
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid #E5E7EB;">
+                        <a asp-action="Index" class="btn btn-secondary mr-3">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary btn-editorial-cta">
+                            <i class="fas fa-save fa-sm mr-2"></i>Lưu cập nhật
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

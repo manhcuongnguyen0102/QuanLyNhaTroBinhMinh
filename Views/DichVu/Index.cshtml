@@ -47,6 +47,10 @@
        class="editorial-filter-btn @(loaiHienTai == "CoDinh" ? "active" : "")">
         Phí cố định hàng tháng (@ViewBag.SoCoDinh)
     </a>
+    <a asp-action="Index" asp-route-loaiDichVu="DaXoa"
+       class="editorial-filter-btn @(loaiHienTai == "DaXoa" ? "active" : "")">
+        Đã ẩn / Đã xóa (@(ViewBag.SoDaXoa ?? 0))
+    </a>
 </div>
 
 <!-- BẢNG THỐNG KÊ ĐƠN GIÁ CHUẨN SB ADMIN 2 -->
@@ -93,21 +97,32 @@
                                 }
                             </td>
                             <td class="text-right">
-                                <a asp-action="Edit" asp-route-id="@item.MaDichVu" class="btn btn-secondary btn-sm py-1 px-3 mr-2">
-                                    Sửa giá
-                                </a>
-                                @if (laDienNuocCotLoi)
+                                @if (item.DaXoa == true)
                                 {
-                                    <span class="text-muted small font-weight-bold" title="Dịch vụ mặc định của hệ thống">Mặc định</span>
+                                    <form asp-action="Restore" asp-route-id="@item.MaDichVu" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-primary btn-sm py-1 px-3" style="background-color: #059669; border-color: #059669;">
+                                            <i class="fas fa-undo-alt fa-xs mr-1"></i>Khôi phục lại
+                                        </button>
+                                    </form>
                                 }
                                 else
                                 {
-                                    <form asp-action="Delete" asp-route-id="@item.MaDichVu" method="post" class="d-inline"
-                                          onsubmit="return confirm('Xác nhận xóa mềm dịch vụ @item.TenDichVu?');">
-                                        <button type="submit" class="btn btn-link btn-sm text-muted p-0" style="font-weight: 600; text-decoration: none;">
-                                            Xóa
-                                        </button>
-                                    </form>
+                                    <a asp-action="Edit" asp-route-id="@item.MaDichVu" class="btn btn-secondary btn-sm py-1 px-3 mr-2">
+                                        Sửa giá
+                                    </a>
+                                    @if (laDienNuocCotLoi)
+                                    {
+                                        <span class="text-muted small font-weight-bold">Mặc định</span>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="Delete" asp-route-id="@item.MaDichVu" method="post" class="d-inline"
+                                              onsubmit="return confirm('Xác nhận xóa mềm dịch vụ @item.TenDichVu?');">
+                                            <button type="submit" class="btn btn-link btn-sm text-muted p-0" style="font-weight: 600; text-decoration: none;">
+                                                Xóa
+                                            </button>
+                                        </form>
+                                    }
                                 }
                             </td>
                         </tr>

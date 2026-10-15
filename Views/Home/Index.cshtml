@@ -1,188 +1,533 @@
-﻿@{
-    ViewData["Title"] = "Tổng quan vận hành";
+﻿@model IEnumerable<QuanLyNhaTroBinhMinh.Models.HoaDon>
+
+@{
+    ViewData["Title"] = "Trung tâm điều hành tổng quan";
+
+    var dsPhong = ViewBag.DanhSachPhong as List<QuanLyNhaTroBinhMinh.Models.PhongTro> ?? new();
+    var mapHopDong = ViewBag.HopDongTheoPhong as Dictionary<string, QuanLyNhaTroBinhMinh.Models.HopDong> ?? new();
+    var setPhongDaChot = ViewBag.PhongDaChotKyNay as HashSet<string> ?? new();
+    var setPhongCoSuCo = ViewBag.PhongCoSuCo as HashSet<string> ?? new();
+
+    var dsHopDongSapHetHan = ViewBag.HopDongSapHetHan as List<QuanLyNhaTroBinhMinh.Models.HopDong> ?? new();
+    var dsGiaoDichMoi = ViewBag.GiaoDichMoiNhat as List<QuanLyNhaTroBinhMinh.Models.ThanhToan> ?? new();
+    var dsSuCoMoi = ViewBag.DanhSachSuCoMoi as List<QuanLyNhaTroBinhMinh.Models.SuCo> ?? new();
+
+    int soPhongChuaChot = ViewBag.SoPhongChuaChotKyNay ?? 0;
+    int chuaTamTru = ViewBag.ChuaDangKyTamTru ?? 0;
+    int suCoChuaXong = ViewBag.SoSuCoChuaXong ?? 0;
+    int sapHetHanCount = dsHopDongSapHetHan.Count;
+    bool coCanhBaoKhan = soPhongChuaChot > 0 || chuaTamTru > 0 || suCoChuaXong > 0 || sapHetHanCount > 0;
 }
 
-<!-- =======================================================================
-     TẦNG 1 (TIÊU ĐỀ CHÍNH) & TẦNG 2 (PRIMARY CTA TƯƠNG PHẢN MẠNH NHẤT)
-     Khoảng cách dưới lớn (mb-5) để bảo toàn tỷ lệ Whitespace >= 25%
-     ======================================================================= -->
-<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+<!-- TIÊU ĐỀ TRUNG TÂM ĐIỀU HÀNH & CỤM LỐI TẮT TÁC VỤ -->
+<div class="d-lg-flex align-items-end justify-content-between mb-4 pb-3" style="border-bottom: 1px solid #E5E7EB;">
     <div>
-        <span class="badge-editorial-mint mb-2 d-inline-block">BÁO CÁO THÁNG @DateTime.Now.ToString("MM/yyyy")</span>
-        <h1 class="editorial-title mb-1">Tổng quan nhà trọ</h1>
-        <p class="editorial-subtitle mb-0">Theo dõi công suất phòng, công nợ hóa đơn và sự cố vận hành theo thời gian thực.</p>
+        <span class="badge-editorial-mint mb-2 d-inline-block">COMMAND CENTER — NHÀ TRỌ BÌNH MINH</span>
+        <h1 class="editorial-title mb-1">Bàn làm việc tổng quan</h1>
+        <p class="editorial-subtitle mb-0">
+            Kỳ vận hành: <strong style="color: #111827;">Tháng @DateTime.Today.ToString("MM/yyyy")</strong> — Giám sát mặt bằng phòng, tiến độ thu ngân và cảnh báo vận hành.
+        </p>
     </div>
 
-    <!-- Cụm nút hành động: Thực hiện cả 2 tác vụ, phân tách rõ chính - phụ -->
-    <div class="mt-4 mt-sm-0 d-flex align-items-center">
-        <a asp-controller="HopDong" asp-action="Create" class="btn btn-secondary mr-3">
-            <i class="fas fa-file-signature fa-sm mr-2"></i>+ Lập hợp đồng mới
+    <div class="mt-4 mt-lg-0 d-flex flex-wrap" style="gap: 0.5rem;">
+        <a asp-controller="ChiSoDienNuoc" asp-action="Create" class="btn btn-secondary">
+            <i class="fas fa-tachometer-alt fa-sm mr-2"></i>Chốt điện nước
+        </a>
+        <a asp-controller="HopDong" asp-action="Create" class="btn btn-secondary">
+            <i class="fas fa-file-signature fa-sm mr-2"></i>Lập hợp đồng
         </a>
         <a asp-controller="HoaDon" asp-action="Create" class="btn btn-primary btn-editorial-cta">
-            <i class="fas fa-plus fa-sm mr-2"></i>Xuất hóa đơn tháng
+            <i class="fas fa-bolt fa-sm mr-2"></i>Xuất hóa đơn tháng
         </a>
     </div>
 </div>
 
-<!-- =======================================================================
-     TẦNG 3 - PHẦN A: 4 KHỐI CHỈ SỐ THỐNG KÊ (SB ADMIN 2 GRID + VIỀN MẢNH 1PX)
-     ======================================================================= -->
-<div class="row mb-4">
+<!-- ĐIỂM NHẤN 5: DẢI CẢNH BÁO HÀNH ĐỘNG KHẨN (ACTIONABLE ALERTS) -->
+@if (coCanhBaoKhan)
+{
+    <div class="p-3 mb-4" style="background-color: #FEF2F2; border: 1px solid #F87171; border-radius: 2px;">
+        <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap: 0.75rem;">
+            <div class="font-weight-bold" style="color: #991B1B;">
+                <i class="fas fa-bell mr-2" style="color: #DC2626;"></i>CẦN XỬ LÝ TRONG KỲ NÀY:
+            </div>
+            <div class="d-flex flex-wrap align-items-center" style="gap: 0.65rem;">
+                @if (soPhongChuaChot > 0)
+                {
+                    <a asp-controller="ChiSoDienNuoc" asp-action="Create"
+                       class="px-3 py-1 font-weight-bold small"
+                       style="background: #FFFFFF; color: #991B1B; border: 1px solid #FCA5A5; border-radius: 2px; text-decoration: none;">
+                        ⚡ @soPhongChuaChot phòng đang thuê chưa chốt Điện/Nước tháng @DateTime.Today.Month →
+                    </a>
+                }
+                @if (chuaTamTru > 0)
+                {
+                    <a asp-controller="KhachO" asp-action="Index" asp-route-tamTru="ChuaDangKy"
+                       class="px-3 py-1 font-weight-bold small"
+                       style="background: #FFFFFF; color: #B45309; border: 1px solid #FCD34D; border-radius: 2px; text-decoration: none;">
+                        🪪 @chuaTamTru cư dân chưa đăng ký tạm trú →
+                    </a>
+                }
+                @if (suCoChuaXong > 0)
+                {
+                    <span class="px-3 py-1 font-weight-bold small"
+                          style="background: #FFFFFF; color: #991B1B; border: 1px solid #FCA5A5; border-radius: 2px;">
+                        🔧 @suCoChuaXong sự cố bảo trì chờ hoàn thành
+                    </span>
+                }
+                @if (sapHetHanCount > 0)
+                {
+                    <a asp-controller="HopDong" asp-action="Index" asp-route-trangThai="Sắp hết hạn"
+                       class="px-3 py-1 font-weight-bold small"
+                       style="background: #FFFFFF; color: #B45309; border: 1px solid #FCD34D; border-radius: 2px; text-decoration: none;">
+                        ⏳ @sapHetHanCount hợp đồng sắp hết hạn ≤ 30 ngày →
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+}
 
-    <!-- Chỉ số 1: Tổng số phòng -->
+<!-- 4 THẺ KPI CHIẾN LƯỢC -->
+<div class="row mb-4">
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-left-primary h-100 mb-0">
-            <div class="card-body py-4">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div class="text-xs font-weight-bold text-uppercase text-muted" style="letter-spacing: 0.08em;">
-                        Tổng số phòng
-                    </div>
-                    <i class="fas fa-door-closed text-muted"></i>
+            <div class="card-body py-3">
+                <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Công suất lấp đầy</div>
+                <div class="d-flex align-items-baseline justify-content-between">
+                    <div class="h3 font-weight-bold mb-0" style="color: #111827;">@ViewBag.TyLeLapDay%</div>
+                    <span class="badge-editorial-mint">@ViewBag.PhongDangThue / @ViewBag.TongPhong phòng</span>
                 </div>
-                <div class="h2 font-weight-bold mb-1" style="color: #111827; font-size: 2rem;">
-                    24 <span class="text-muted" style="font-size: 0.9rem; font-weight: 500;">phòng</span>
-                </div>
-                <div class="small text-muted">Công suất lấp đầy: <strong style="color: #059669;">87.5%</strong></div>
+                <small class="text-muted d-block mt-2">
+                    Trống: <strong style="color: #059669;">@ViewBag.PhongTrong</strong> | Đang sửa: <strong style="color: #B45309;">@ViewBag.PhongDangSua</strong>
+                </small>
             </div>
         </div>
     </div>
 
-    <!-- Chỉ số 2: Phòng đang trống -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-left-success h-100 mb-0">
-            <div class="card-body py-4">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div class="text-xs font-weight-bold text-uppercase text-muted" style="letter-spacing: 0.08em;">
-                        Phòng đang trống
-                    </div>
-                    <i class="fas fa-key text-muted"></i>
+            <div class="card-body py-3">
+                <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Tổng dòng tiền thực thu</div>
+                <div class="h4 font-weight-bold mb-0" style="color: #059669;">
+                    @(((decimal)ViewBag.TongDoanhThuDaThu).ToString("N0"))đ
                 </div>
-                <div class="h2 font-weight-bold mb-1" style="color: #059669; font-size: 2rem;">
-                    03 <span class="text-muted" style="font-size: 0.9rem; font-weight: 500;">phòng</span>
-                </div>
-                <div class="small text-muted">Sẵn sàng đón khách thuê mới</div>
+                <small class="text-muted d-block mt-2">
+                    Tháng @DateTime.Today.ToString("MM/yyyy"): <strong style="color: #111827;">@(((decimal)ViewBag.DoanhThuThangNay).ToString("N0"))đ</strong>
+                </small>
             </div>
         </div>
     </div>
 
-    <!-- Chỉ số 3: Hóa đơn chờ thu -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-info h-100 mb-0">
-            <div class="card-body py-4">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div class="text-xs font-weight-bold text-uppercase text-muted" style="letter-spacing: 0.08em;">
-                        Hóa đơn chờ thu
-                    </div>
-                    <i class="fas fa-file-invoice-dollar text-muted"></i>
-                </div>
-                <div class="h2 font-weight-bold mb-1" style="color: #111827; font-size: 2rem;">
-                    14.500.000<span style="font-size: 1rem;">đ</span>
-                </div>
-                <div class="small text-muted">Từ <strong>04 phòng</strong> chưa tất toán</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Chỉ số 4: Sự cố chờ xử lý -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-left-warning h-100 mb-0">
-            <div class="card-body py-4">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div class="text-xs font-weight-bold text-uppercase text-muted" style="letter-spacing: 0.08em;">
-                        Sự cố chờ xử lý
-                    </div>
-                    <i class="fas fa-tools text-muted"></i>
+            <div class="card-body py-3">
+                <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Công nợ chưa thu</div>
+                <div class="h4 font-weight-bold mb-0" style="color: @(ViewBag.TongCongNoCanThu > 0 ? "#DC2626" : "#111827");">
+                    @(((decimal)ViewBag.TongCongNoCanThu).ToString("N0"))đ
                 </div>
-                <div class="h2 font-weight-bold mb-1" style="color: #111827; font-size: 2rem;">
-                    02 <span class="text-muted" style="font-size: 0.9rem; font-weight: 500;">yêu cầu</span>
-                </div>
-                <div class="small text-muted">Cần điều phối thợ kiểm tra</div>
+                <small class="text-muted d-block mt-2">
+                    Tồn đọng: <strong style="color: #DC2626;">@ViewBag.SoHoaDonConNo hóa đơn</strong> | Chi phí sửa: <strong>@(((decimal)ViewBag.TongChiPhiSuaChua).ToString("N0"))đ</strong>
+                </small>
             </div>
         </div>
     </div>
 
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info h-100 mb-0">
+            <div class="card-body py-3">
+                <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Lưu trú & Nhân khẩu</div>
+                <div class="h4 font-weight-bold mb-0" style="color: #111827;">
+                    @ViewBag.TongCuDanDangO <span class="text-muted" style="font-size: 0.9rem;">cư dân đang ở</span>
+                </div>
+                <small class="text-muted d-block mt-2">
+                    <strong>@ViewBag.SoHopDongHieuLuc HĐ hiệu lực</strong> | Sự cố mở: <strong style="color: @(suCoChuaXong > 0 ? "#DC2626" : "#059669");">@suCoChuaXong</strong>
+                </small>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- =======================================================================
-     TẦNG 3 - PHẦN B: BẢNG THỐNG KÊ SB ADMIN 2 (PHÒNG CHƯA ĐÓNG TIỀN)
-     ======================================================================= -->
-<div class="card mt-2">
+<!-- ĐIỂM NHẤN 2: THANH TIẾN ĐỘ VẬN HÀNH THÁNG HIỆN TẠI (3 BƯỚC KHÉP KÍN) -->
+<div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <div>
-            <span style="font-size: 1.05rem; font-weight: 700; color: #111827;">Danh sách phòng chưa đóng tiền tháng này</span>
-            <p class="text-muted mb-0 mt-1">Theo dõi các hợp đồng còn dư nợ để nhắc lịch thanh toán đúng hạn.</p>
-        </div>
-        <a asp-controller="HoaDon" asp-action="Index" class="btn btn-secondary btn-sm">
-            Xem tất cả hóa đơn
-        </a>
+        <span>Quy trình khép kín kỳ Tháng @DateTime.Today.ToString("MM/yyyy") (3 bước vận hành)</span>
+        <span class="badge-editorial-mint">Tự động đồng bộ theo thời gian thực</span>
     </div>
+    <div class="card-body py-3">
+        <div class="row">
+            <!-- Bước 1: Chốt điện nước -->
+            <div class="col-md-4 mb-3 mb-md-0" style="border-right: 1px solid #F3F4F6;">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="font-weight-bold" style="color: #111827;">1. Chốt đồng hồ Điện & Nước</span>
+                    <span class="font-weight-bold" style="color: #059669;">@ViewBag.SoPhongDaChotKyNay / @ViewBag.SoHopDongHieuLuc phòng (@ViewBag.PhanTramChotDienNuoc%)</span>
+                </div>
+                <div class="progress mb-2" style="height: 8px; background-color: #E5E7EB; border-radius: 2px;">
+                    <div class="progress-bar" style="width: @(ViewBag.PhanTramChotDienNuoc)%; background-color: #059669;"></div>
+                </div>
+                <small class="text-muted">
+                    @(soPhongChuaChot == 0 ? "✓ Đã chốt đủ toàn bộ phòng đang thuê." : $"Còn {soPhongChuaChot} phòng cần ghi chỉ số đồng hồ.")
+                </small>
+            </div>
 
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table" width="100%" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th>Mã hóa đơn</th>
-                        <th>Phòng</th>
-                        <th>Người đại diện</th>
-                        <th>Kỳ thanh toán</th>
-                        <th class="text-right">Tổng tiền</th>
-                        <th class="text-right">Còn nợ</th>
-                        <th class="text-center">Trạng thái</th>
-                        <th class="text-right">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="font-weight-bold" style="color: #111827;">#HD-1026-01</td>
-                        <td><span class="badge-editorial-mint">P.101</span></td>
-                        <td>Nguyễn Văn An</td>
-                        <td>Tháng 10/2026</td>
-                        <td class="text-right font-weight-bold" style="color: #111827;">3.850.000đ</td>
-                        <td class="text-right font-weight-bold" style="color: #059669;">3.850.000đ</td>
-                        <td class="text-center">
-                            <span class="small font-weight-bold" style="color: #4B5563; background: #F3F4F6; padding: 0.3rem 0.6rem; border: 1px solid #E5E7EB; border-radius: 2px;">
-                                Chưa thanh toán
-                            </span>
-                        </td>
-                        <td class="text-right">
-                            <a href="#" class="btn btn-secondary btn-sm py-1 px-3">Ghi nhận thu</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="font-weight-bold" style="color: #111827;">#HD-1026-04</td>
-                        <td><span class="badge-editorial-mint">P.202</span></td>
-                        <td>Trần Thị Bích</td>
-                        <td>Tháng 10/2026</td>
-                        <td class="text-right font-weight-bold" style="color: #111827;">4.200.000đ</td>
-                        <td class="text-right font-weight-bold" style="color: #059669;">1.200.000đ</td>
-                        <td class="text-center">
-                            <span class="small font-weight-bold" style="color: #059669; background: #ECFDF5; padding: 0.3rem 0.6rem; border: 1px solid #A7F3D0; border-radius: 2px;">
-                                Đóng một phần
-                            </span>
-                        </td>
-                        <td class="text-right">
-                            <a href="#" class="btn btn-secondary btn-sm py-1 px-3">Ghi nhận thu</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="font-weight-bold" style="color: #111827;">#HD-1026-07</td>
-                        <td><span class="badge-editorial-mint">P.301</span></td>
-                        <td>Lê Hoàng Nam</td>
-                        <td>Tháng 10/2026</td>
-                        <td class="text-right font-weight-bold" style="color: #111827;">3.450.000đ</td>
-                        <td class="text-right font-weight-bold" style="color: #059669;">3.450.000đ</td>
-                        <td class="text-center">
-                            <span class="small font-weight-bold" style="color: #4B5563; background: #F3F4F6; padding: 0.3rem 0.6rem; border: 1px solid #E5E7EB; border-radius: 2px;">
-                                Chưa thanh toán
-                            </span>
-                        </td>
-                        <td class="text-right">
-                            <a href="#" class="btn btn-secondary btn-sm py-1 px-3">Ghi nhận thu</a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <!-- Bước 2: Xuất hóa đơn -->
+            <div class="col-md-4 mb-3 mb-md-0" style="border-right: 1px solid #F3F4F6;">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="font-weight-bold" style="color: #111827;">2. Phát hành Hóa đơn tháng</span>
+                    <span class="font-weight-bold" style="color: #059669;">@ViewBag.SoHoaDonThangNay / @ViewBag.SoHopDongHieuLuc HĐ (@ViewBag.PhanTramXuatHoaDon%)</span>
+                </div>
+                <div class="progress mb-2" style="height: 8px; background-color: #E5E7EB; border-radius: 2px;">
+                    <div class="progress-bar" style="width: @(ViewBag.PhanTramXuatHoaDon)%; background-color: #059669;"></div>
+                </div>
+                <small class="text-muted">
+                    Tổng phát hành kỳ này: <strong style="color: #111827;">@(((decimal)ViewBag.PhaiThuThangNay).ToString("N0"))đ</strong>
+                </small>
+            </div>
+
+            <!-- Bước 3: Thu hồi tiền -->
+            <div class="col-md-4">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="font-weight-bold" style="color: #111827;">3. Tiến độ khách thanh toán kỳ này</span>
+                    <span class="font-weight-bold" style="color: #059669;">@ViewBag.PhanTramThuTienThangNay%</span>
+                </div>
+                <div class="progress mb-2" style="height: 8px; background-color: #E5E7EB; border-radius: 2px;">
+                    <div class="progress-bar" style="width: @(ViewBag.PhanTramThuTienThangNay)%; background-color: #059669;"></div>
+                </div>
+                <small class="text-muted">
+                    Đã thu: <strong style="color: #059669;">@(((decimal)ViewBag.DaThuCuaHoaDonThangNay).ToString("N0"))đ</strong> / @(((decimal)ViewBag.PhaiThuThangNay).ToString("N0"))đ
+                </small>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- ĐIỂM NHẤN 1: SƠ ĐỒ MẶT BẰNG PHÒNG TRỰC QUAN (INTERACTIVE ROOM MATRIX) -->
+<div class="card mb-4">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+        <div>
+            <span>Sơ đồ mặt bằng trạng thái phòng trực tiếp (@dsPhong.Count phòng)</span>
+        </div>
+        <div class="d-flex flex-wrap align-items-center small" style="gap: 1rem;">
+            <span><span class="status-badge-available py-0 px-2 mr-1">●</span>Trống (Bấm để ký HĐ)</span>
+            <span><span class="status-badge-occupied py-0 px-2 mr-1">●</span>Đang thuê</span>
+            <span><span class="status-badge-maintenance py-0 px-2 mr-1">●</span>Đang sửa</span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            @foreach (var phong in dsPhong)
+            {
+                string maP = phong.MaPhong.Trim();
+                bool dangThue = phong.TrangThai == "Đang thuê";
+                bool dangSua = phong.TrangThai == "Đang sửa";
+                mapHopDong.TryGetValue(maP, out var hdHienTai);
+                bool daChotSo = setPhongDaChot.Contains(maP);
+                bool coSuCo = setPhongCoSuCo.Contains(maP);
+
+                string borderTopColor = dangThue ? "#111827" : (dangSua ? "#F59E0B" : "#059669");
+                string bgCard = dangSua ? "#FFFBEB" : (dangThue ? "#FFFFFF" : "#ECFDF5");
+
+                <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
+                    <div class="p-3 h-100 d-flex flex-column justify-content-between"
+                         style="background-color: @bgCard; border: 1px solid #E5E7EB; border-top: 4px solid @borderTopColor; border-radius: 2px;">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="font-weight-bold" style="color: #111827; font-size: 1.05rem;">@phong.MaPhong</span>
+                                    <span class="text-muted small ml-1">— @phong.TenPhong</span>
+                                </div>
+                                <span class="@(dangThue ? "status-badge-occupied" : (dangSua ? "status-badge-maintenance" : "status-badge-available"))">
+                                    @phong.TrangThai
+                                </span>
+                            </div>
+
+                            <div class="font-weight-bold mb-2" style="color: #059669; font-size: 0.95rem;">
+                                @phong.GiaThueCung.ToString("N0")đ <span class="text-muted small font-weight-normal">/ tháng (@(phong.DienTich ?? 0)m²)</span>
+                            </div>
+
+                            @if (dangThue && hdHienTai != null)
+                            {
+                                <div class="small mb-2" style="color: #374151;">
+                                    <div><i class="fas fa-file-contract mr-1 text-muted"></i>HĐ: <strong>#@hdHienTai.MaHopDong</strong> (@hdHienTai.KhachOs.Count người)</div>
+                                    <div><i class="fas fa-user-check mr-1 text-muted"></i>Đại diện: <strong>@(hdHienTai.MaNguoiDungDaiDienNavigation?.TenDangNhap ?? "Chưa gán TK")</strong></div>
+                                </div>
+                                <div class="d-flex flex-wrap" style="gap: 0.35rem;">
+                                    @if (daChotSo)
+                                    {
+                                        <span class="badge-editorial-mint" style="font-size: 0.7rem;">✓ Đã chốt ĐN T@(DateTime.Today.Month)</span>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="ChiSoDienNuoc" asp-action="Create" asp-route-maPhong="@phong.MaPhong"
+                                           style="background: #FEF2F2; color: #991B1B; border: 1px solid #F87171; padding: 2px 6px; font-size: 0.7rem; font-weight: 700; border-radius: 2px; text-decoration: none;">
+                                            ⚡ Chưa chốt ĐN →
+                                        </a>
+                                    }
+                                    @if (coSuCo)
+                                    {
+                                        <span style="background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; padding: 2px 6px; font-size: 0.7rem; font-weight: 700; border-radius: 2px;">
+                                            🔧 Có sự cố
+                                        </span>
+                                    }
+                                </div>
+                            }
+                            else if (dangSua)
+                            {
+                                <p class="small text-muted mb-0">Phòng đang tạm dừng đón khách để bảo trì thiết bị.</p>
+                            }
+                            else
+                            {
+                                <p class="small mb-0" style="color: #059669; font-weight: 600;">
+                                    Sẵn sàng bàn giao và ký hợp đồng lưu trú mới.
+                                </p>
+                            }
+                        </div>
+
+                        <div class="pt-2 mt-3 d-flex justify-content-between align-items-center" style="border-top: 1px solid #E5E7EB;">
+                            @if (dangThue && hdHienTai != null)
+                            {
+                                <a asp-controller="HopDong" asp-action="Details" asp-route-id="@hdHienTai.MaHopDong"
+                                   class="small font-weight-bold" style="color: #111827; text-decoration: none;">
+                                    Xem hợp đồng & khách →
+                                </a>
+                            }
+                            else if (!dangSua)
+                            {
+                                <a asp-controller="HopDong" asp-action="Create" asp-route-maPhong="@phong.MaPhong"
+                                   class="small font-weight-bold" style="color: #059669; text-decoration: none;">
+                                    + Lập hợp đồng phòng này →
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-controller="PhongTro" asp-action="Edit" asp-route-id="@phong.MaPhong"
+                                   class="small font-weight-bold" style="color: #B45309; text-decoration: none;">
+                                    Cập nhật trạng thái →
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- ĐIỂM NHẤN 3: BIỂU ĐỒ TÀI CHÍNH THỰC THU & CÔNG NỢ 6 THÁNG (CHART.JS) -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Biểu đồ Thực thu & Công nợ (6 tháng gần nhất)</span>
+                <span class="text-muted small">Đơn vị: VNĐ</span>
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="chartDoanhThu6Thang"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ĐIỂM NHẤN 4: BẢNG HÓA ĐƠN CÒN NỢ & TIMELINE DÒNG TIỀN / SỰ CỐ MỚI NHẤT -->
+<div class="row">
+    <!-- Cột trái (7 phần): Các hóa đơn còn nợ tiền -->
+    <div class="col-xl-7 col-lg-7 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Hóa đơn chưa tất toán (@Model.Count())</span>
+                <a asp-controller="HoaDon" asp-action="Index" class="small font-weight-bold" style="color: #059669; text-decoration: none;">
+                    Quản lý toàn bộ hóa đơn →
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0" width="100%" cellspacing="0">
+                        <thead>
+                            <tr style="white-space: nowrap;">
+                                <th>Mã HĐ</th>
+                                <th>Phòng</th>
+                                <th class="text-center">Kỳ thu</th>
+                                <th class="text-right">Tổng tiền</th>
+                                <th class="text-right">Còn nợ</th>
+                                <th class="text-center">Trạng thái</th>
+                                <th class="text-right">Chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.Any())
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center py-5 text-muted">
+                                        <i class="fas fa-check-circle mr-1" style="color: #059669;"></i>Toàn bộ hóa đơn đã được thanh toán đủ 100%!
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var hd in Model.Take(6))
+                                {
+                                    decimal tong = hd.TongTien ?? 0;
+                                    decimal daTra = hd.ThanhToans.Sum(t => t.SoTienTra);
+                                    decimal conNo = Math.Max(0, tong - daTra);
+
+                                    <tr style="white-space: nowrap;">
+                                        <td class="font-weight-bold">
+                                            <a asp-controller="HoaDon" asp-action="Details" asp-route-id="@hd.MaHoaDon" style="color: #059669; text-decoration: none;">
+                                                #@hd.MaHoaDon
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <span class="badge-editorial-mint">@(hd.MaHopDongNavigation?.MaPhong ?? "—")</span>
+                                        </td>
+                                        <td class="text-center">@(hd.Thang?.ToString("D2"))/@hd.Nam</td>
+                                        <td class="text-right font-weight-bold" style="color: #111827;">@tong.ToString("N0")đ</td>
+                                        <td class="text-right font-weight-bold" style="color: #DC2626;">@conNo.ToString("N0")đ</td>
+                                        <td class="text-center">
+                                            <span class="@(hd.TrangThai == "Thanh toán một phần" ? "status-badge-maintenance" : "status-badge-occupied")">
+                                                @hd.TrangThai
+                                            </span>
+                                        </td>
+                                        <td class="text-right">
+                                            <a asp-controller="HoaDon" asp-action="Details" asp-route-id="@hd.MaHoaDon" class="btn btn-secondary btn-sm py-1 px-2">
+                                                Xem phiếu
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cột phải (5 phần): Nhật ký dòng tiền vừa thu & Sự cố bảo trì -->
+    <div class="col-xl-5 col-lg-5 mb-4">
+        <!-- Nhật ký dòng tiền mới nhất -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Nhật ký dòng tiền vừa thu</span>
+                <span class="badge-editorial-mint">Live Feed</span>
+            </div>
+            <div class="card-body py-2 px-3">
+                @if (!dsGiaoDichMoi.Any())
+                {
+                    <div class="text-center py-4 text-muted small">Chưa có giao dịch thanh toán nào được ghi nhận.</div>
+                }
+                else
+                {
+                    @foreach (var gd in dsGiaoDichMoi)
+                    {
+                        <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom: 1px solid #F3F4F6;">
+                            <div>
+                                <div class="font-weight-bold" style="color: #111827; font-size: 0.875rem;">
+                                    Phòng @(gd.MaHoaDonNavigation?.MaHopDongNavigation?.MaPhong ?? "—")
+                                    <span class="text-muted font-weight-normal">— HĐ #@gd.MaHoaDon</span>
+                                </div>
+                                <small class="text-muted">
+                                    @(gd.NgayTra?.ToString("dd/MM/yyyy HH:mm")) • <strong>@gd.PhuongThuc</strong>
+                                </small>
+                            </div>
+                            <div class="font-weight-bold" style="color: #059669; white-space: nowrap;">
+                                +@gd.SoTienTra.ToString("N0")đ
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Nhật ký Sự cố & Bảo trì mới nhất (SuCo) -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Báo cáo sự cố & Bảo trì gần đây</span>
+                <span class="text-muted small">Chi phí lũy kế: @(((decimal)ViewBag.TongChiPhiSuaChua).ToString("N0"))đ</span>
+            </div>
+            <div class="card-body py-2 px-3">
+                @if (!dsSuCoMoi.Any())
+                {
+                    <div class="text-center py-4 text-muted small">Không có sự cố hỏng hóc nào được báo cáo.</div>
+                }
+                else
+                {
+                    @foreach (var sc in dsSuCoMoi)
+                    {
+                        bool daXong = sc.TrangThai == "Đã hoàn thành";
+                        <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom: 1px solid #F3F4F6;">
+                            <div class="pr-2">
+                                <div class="font-weight-bold" style="color: #111827; font-size: 0.875rem;">
+                                    <span class="badge-editorial-mint mr-1">@(sc.MaPhong ?? "Chung")</span>@sc.MoTa
+                                </div>
+                                <small class="text-muted">
+                                    Báo bởi: @(sc.MaNguoiDungBaoNavigation?.TenDangNhap ?? sc.MaNguoiDungBao ?? "Chủ trọ")
+                                    • Chi phí: <strong>@((sc.ChiPhiSua ?? 0).ToString("N0"))đ</strong>
+                                </small>
+                            </div>
+                            <span class="@(daXong ? "status-badge-available" : "status-badge-maintenance")">
+                                @(sc.TrangThai ?? "Mới")
+                            </span>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Nhúng thư viện Chart.js có sẵn của SB Admin 2 -->
+    <script src="~/vendor/chart.js/Chart.min.js"></script>
+    <script>
+        // BIỂU ĐỒ CỘT ĐÔI: THỰC THU VS CÔNG NỢ 6 THÁNG GẦN NHẤT
+        const labels6Thang = @Html.Raw(ViewBag.ChartLabels6Thang ?? "[]");
+        const dataThucThu = @Html.Raw(ViewBag.ChartThucThu6Thang ?? "[]");
+        const dataCongNo = @Html.Raw(ViewBag.ChartCongNo6Thang ?? "[]");
+
+        const ctxBar = document.getElementById('chartDoanhThu6Thang');
+        if (ctxBar) {
+            new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: labels6Thang,
+                    datasets: [
+                        {
+                            label: 'Thực thu (Đã thanh toán)',
+                            backgroundColor: '#059669',
+                            borderColor: '#059669',
+                            data: dataThucThu
+                        },
+                        {
+                            label: 'Công nợ còn lại',
+                            backgroundColor: '#EF4444',
+                            borderColor: '#EF4444',
+                            data: dataCongNo
+                        }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                callback: function (value) {
+                                    return value.toLocaleString('vi-VN') + 'đ';
+                                }
+                            }
+                        }]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function (tooltipItem, chart) {
+                                const datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+                                return datasetLabel + ': ' + Number(tooltipItem.yLabel).toLocaleString('vi-VN') + 'đ';
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+}

@@ -8,10 +8,12 @@ namespace QuanLyNhaTroBinhMinh.Controllers;
 public class ChiSoDienNuocController : Controller
 {
     private readonly QuanLyNhaTroBinhMinhContext _context;
+    private readonly IWebHostEnvironment _env;
 
-    public ChiSoDienNuocController(QuanLyNhaTroBinhMinhContext context)
+    public ChiSoDienNuocController(QuanLyNhaTroBinhMinhContext context, IWebHostEnvironment env)
     {
         _context = context;
+        _env = env;
     }
 
     // 1. DANH SÁCH CHỐT ĐIỆN NƯỚC THEO KỲ THÁNG / NĂM
@@ -63,7 +65,6 @@ public class ChiSoDienNuocController : Controller
             return Json(new { dienCu = 0, nuocCu = 0, coDuLieuCu = false });
         }
 
-        // Tìm bản ghi chốt điện nước gần nhất trước kỳ (thang/nam) của phòng này
         var banGhiTruoc = await _context.ChiSoDienNuocs
             .AsNoTracking()
             .Where(c => c.MaPhong == maPhong && (c.Nam < nam || (c.Nam == nam && c.Thang < thang)))
@@ -109,10 +110,12 @@ public class ChiSoDienNuocController : Controller
         return View(model);
     }
 
-    // 4. XỬ LÝ LƯU CHỈ SỐ ĐIỆN NƯỚC (POST - KHỚP TOÀN BỘ CHECK CONSTRAINTS SQL)
+    // 4. XỬ LÝ LƯU CHỈ SỐ ĐIỆN NƯỚC & TẢI NHIỀU ẢNH ĐỒNG HỒ TỪ MÁY TÍNH (POST)
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("MaChiSo,MaPhong,Thang,Nam,DienCu,DienMoi,NuocCu,NuocMoi,AnhDongHo")] ChiSoDienNuoc chiSo)
+    public async Task<IActionResult> Create(
+        [Bind("MaChiSo,MaPhong,Thang,Nam,DienCu,DienMoi,NuocCu,NuocMoi")] ChiSoDienNuoc chiSo,
+        List<IFormFile>? filesAnhDongHo)
     {
         if (!string.IsNullOrWhiteSpace(chiSo.MaChiSo))
         {
@@ -123,7 +126,6 @@ public class ChiSoDienNuocController : Controller
             }
         }
 
-        // Kiểm tra xem phòng đã chốt chỉ số trong Tháng/Năm này chưa
         if (!string.IsNullOrWhiteSpace(chiSo.MaPhong) && chiSo.Thang.HasValue && chiSo.Nam.HasValue)
         {
             bool daChotKyNay = await _context.ChiSoDienNuocs.AnyAsync(c =>
@@ -135,14 +137,22 @@ public class ChiSoDienNuocController : Controller
             }
         }
 
-        // Kiểm tra ràng buộc SQL: Thang (1-12), Nam (>2000), DienCu >= 0, NuocCu >= 0, DienMoi >= DienCu, NuocMoi >= NuocCu
         ValidateChiSoConstraints(chiSo);
+        ValidateDanhSachFileAnh(filesAnhDongHo);
 
         if (ModelState.IsValid)
         {
+            if (filesAnhDongHo != null && filesAnhDongHo.Any(f => f.Length > 0))
+            {
+                var dsDuongDan = await LuuNhieuFileAnhDongHoAsync(filesAnhDongHo, chiSo.MaChiSo);
+                chiSo.AnhDongHo = string.Join(";", dsDuongDan);
+            }
+
             _context.Add(chiSo);
             await _context.SaveChangesAsync();
-            TempData["ThongBao"] = $"Đã chốt điện nước phòng {chiSo.MaPhong} kỳ {chiSo.Thang:D2}/{chiSo.Nam} (Tiêu thụ: {(chiSo.DienMoi - chiSo.DienCu)} kWh điện, {(chiSo.NuocMoi - chiSo.NuocCu)} khối nước).";
+
+            int soAnh = string.IsNullOrWhiteSpace(chiSo.AnhDongHo) ? 0 : chiSo.AnhDongHo.Split(';', StringSplitOptions.RemoveEmptyEntries).Length;
+            TempData["ThongBao"] = $"Đã chốt điện nước phòng {chiSo.MaPhong} kỳ {chiSo.Thang:D2}/{chiSo.Nam} (Đính kèm {soAnh} ảnh đồng hồ).";
             return RedirectToAction(nameof(Index));
         }
 
@@ -163,25 +173,92 @@ public class ChiSoDienNuocController : Controller
         return View(chiSo);
     }
 
-    // 6. XỬ LÝ CẬP NHẬT CHỈ SỐ ĐIỆN NƯỚC (POST)
+    // 6. XỬ LÝ CẬP NHẬT CHỈ SỐ & THÊM/XÓA ẢNH ĐỒNG HỒ (POST)
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(string id, [Bind("MaChiSo,MaPhong,Thang,Nam,DienCu,DienMoi,NuocCu,NuocMoi,AnhDongHo")] ChiSoDienNuoc chiSo)
+    public async Task<IActionResult> Edit(
+        string id,
+        [Bind("MaChiSo,MaPhong,Thang,Nam,DienCu,DienMoi,NuocCu,NuocMoi")] ChiSoDienNuoc chiSo,
+        List<string>? anhGiuLai,
+        List<IFormFile>? filesAnhDongHo)
     {
         if (id != chiSo.MaChiSo) return NotFound();
 
         ValidateChiSoConstraints(chiSo);
+        ValidateDanhSachFileAnh(filesAnhDongHo);
 
         if (ModelState.IsValid)
         {
+            // Tập hợp các ảnh cũ được tích giữ lại
+            var danhSachAnh = new List<string>();
+            if (anhGiuLai != null && anhGiuLai.Any())
+            {
+                danhSachAnh.AddRange(anhGiuLai.Where(a => !string.IsNullOrWhiteSpace(a)));
+            }
+
+            // Cộng thêm các ảnh mới vừa chọn từ máy tính (nếu có)
+            if (filesAnhDongHo != null && filesAnhDongHo.Any(f => f.Length > 0))
+            {
+                var anhMoi = await LuuNhieuFileAnhDongHoAsync(filesAnhDongHo, chiSo.MaChiSo);
+                danhSachAnh.AddRange(anhMoi);
+            }
+
+            chiSo.AnhDongHo = danhSachAnh.Any() ? string.Join(";", danhSachAnh) : null;
+
             _context.Update(chiSo);
             await _context.SaveChangesAsync();
-            TempData["ThongBao"] = $"Đã cập nhật chỉ số điện nước mã #{chiSo.MaChiSo} (Phòng {chiSo.MaPhong} — Kỳ {chiSo.Thang:D2}/{chiSo.Nam}).";
+            TempData["ThongBao"] = $"Đã cập nhật phiếu chốt #{chiSo.MaChiSo} (Hiện có {danhSachAnh.Count} ảnh minh chứng).";
             return RedirectToAction(nameof(Index));
         }
 
         await PopulatePhongDropdownAsync(chiSo.MaPhong);
         return View(chiSo);
+    }
+
+    private void ValidateDanhSachFileAnh(List<IFormFile>? files)
+    {
+        if (files == null || !files.Any()) return;
+
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+        foreach (var file in files.Where(f => f.Length > 0))
+        {
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(ext))
+            {
+                ModelState.AddModelError("AnhDongHo", $"File '{file.FileName}' không hợp lệ. Chỉ chấp nhận ảnh .jpg, .jpeg, .png hoặc .webp.");
+                break;
+            }
+        }
+    }
+
+    // LƯU NHIỀU FILE ẢNH VỚI ĐƯỜNG DẪN NGẮN GỌN (/uploads/dh/...) ĐỂ LƯU ĐƯỢC NHIỀU ẢNH TRONG CỘT AnhDongHo
+    private async Task<List<string>> LuuNhieuFileAnhDongHoAsync(List<IFormFile> files, string maChiSo)
+    {
+        var ketQua = new List<string>();
+        string uploadFolder = Path.Combine(_env.WebRootPath, "uploads", "dh");
+        if (!Directory.Exists(uploadFolder))
+        {
+            Directory.CreateDirectory(uploadFolder);
+        }
+
+        string safeCode = string.Concat(maChiSo.Where(char.IsLetterOrDigit));
+        int stt = 1;
+
+        foreach (var file in files.Where(f => f.Length > 0))
+        {
+            string ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            string fileName = $"{safeCode}_{stt++}_{Random.Shared.Next(100, 999)}{ext}";
+            string fullPath = Path.Combine(uploadFolder, fileName);
+
+            using (var stream = new FileStream(fullPath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            ketQua.Add($"/uploads/dh/{fileName}");
+        }
+
+        return ketQua;
     }
 
     private void ValidateChiSoConstraints(ChiSoDienNuoc chiSo)
@@ -198,7 +275,6 @@ public class ChiSoDienNuocController : Controller
         if (!chiSo.NuocCu.HasValue || chiSo.NuocCu < 0)
             ModelState.AddModelError("NuocCu", "Chỉ số nước cũ phải >= 0.");
 
-        // Khớp với CHK_ChiSo: ([DienMoi]>=[DienCu] AND [NuocMoi]>=[NuocCu])
         if (!chiSo.DienMoi.HasValue || chiSo.DienMoi < chiSo.DienCu)
             ModelState.AddModelError("DienMoi", "Chỉ số điện mới bắt buộc phải lớn hơn hoặc bằng chỉ số điện cũ.");
 

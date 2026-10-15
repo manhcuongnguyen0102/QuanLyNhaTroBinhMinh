@@ -1,0 +1,53 @@
+﻿@model QuanLyNhaTroBinhMinh.Models.ThongBao
+
+@{
+    ViewData["Title"] = "Chỉnh sửa thông báo";
+}
+
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">CẬP NHẬT BẢN TIN</span>
+        <h1 class="editorial-title mb-1">Sửa thông báo #@Model.MaThongBao</h1>
+    </div>
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left fa-sm mr-2"></i>Quay lại bảng tin</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-7 col-lg-9">
+        <div class="card">
+            <div class="card-header">Nội dung bản tin — Mã: @Model.MaThongBao</div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" asp-for="MaNguoiDungTao" />
+                    <input type="hidden" asp-for="NgayTao" />
+
+                    <div class="form-row">
+                        <div class="form-group col-md-4 mb-4">
+                            <label asp-for="MaThongBao" class="editorial-label">Mã thông báo</label>
+                            <input asp-for="MaThongBao" class="form-control" readonly style="background-color: #F9FAFB !important;" />
+                        </div>
+
+                        <div class="form-group col-md-8 mb-4">
+                            <label asp-for="TieuDe" class="editorial-label">Tiêu đề thông báo *</label>
+                            <input asp-for="TieuDe" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-5">
+                        <label asp-for="NoiDung" class="editorial-label">Nội dung chi tiết *</label>
+                        <textarea asp-for="NoiDung" rows="5" class="form-control" required></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid #E5E7EB;">
+                        <a asp-action="Index" class="btn btn-secondary mr-3">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary btn-editorial-cta">
+                            <i class="fas fa-save fa-sm mr-2"></i>Lưu thay đổi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

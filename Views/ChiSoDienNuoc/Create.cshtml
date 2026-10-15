@@ -34,7 +34,7 @@
                 <span id="thongBaoChiSoCu" class="badge-editorial-mint">Chọn phòng để tự động nạp chỉ số cũ</span>
             </div>
             <div class="card-body">
-                <form asp-action="Create" method="post">
+                <form asp-action="Create" method="post" enctype="multipart/form-data">
                     <div class="form-row">
                         <div class="form-group col-md-3 mb-4">
                             <label asp-for="MaChiSo" class="editorial-label">Mã phiếu chốt *</label>
@@ -99,9 +99,33 @@
                         </div>
                     </div>
 
+                    <!-- KHỐI TẢI NHIỀU ẢNH ĐỒNG HỒ ĐIỆN & NƯỚC TỪ MÁY TÍNH -->
                     <div class="form-group mb-5">
-                        <label asp-for="AnhDongHo" class="editorial-label">Ghi chú / Đường dẫn ảnh chụp đồng hồ (Tùy chọn)</label>
-                        <input asp-for="AnhDongHo" class="form-control" placeholder="VD: Đã đối chiếu ảnh chụp Zalo ngày 30..." />
+                        <label class="editorial-label">Ảnh chụp đồng hồ chứng minh số Điện & số Nước (Chọn nhiều ảnh)</label>
+                        <div class="p-3" style="background-color: #FAFAFA; border: 1px dashed #D1D5DB; border-radius: 2px;">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between">
+                                <input type="file" name="filesAnhDongHo" id="inputAnhDongHo" multiple
+                                       accept=".jpg,.jpeg,.png,.webp,image/*"
+                                       class="form-control-file" style="font-size: 0.9rem; color: #111827; max-width: 70%;" />
+                                <button type="button" id="btnXoaTatCaAnh" class="btn btn-secondary btn-sm py-1 px-2 d-none" onclick="xoaTatCaAnhDaChon()">
+                                    Xóa chọn lại
+                                </button>
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                <i class="fas fa-images mr-1" style="color: #059669;"></i>Bạn có thể chọn <strong>nhiều ảnh cùng lúc</strong> (giữ phím <code>Ctrl</code> khi chọn file hoặc bấm chọn thêm lần nữa) để đính kèm cả ảnh đồng hồ Điện và ảnh đồng hồ Nước.
+                            </small>
+
+                            <!-- Lưới hiển thị tất cả các ảnh đã chọn + Bấm vào để phóng to -->
+                            <div id="khungXemTruocAnh" class="mt-3 d-none">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small font-weight-bold" style="color: #059669;" id="lblSoAnhDaChon">Đã chọn 0 ảnh:</span>
+                                    <button type="button" class="btn btn-link btn-sm p-0" style="color: #059669; font-weight: 700; text-decoration: none;" onclick="moModalPhongToTatCa()">
+                                        <i class="fas fa-search-plus mr-1"></i>Phóng to tất cả ảnh
+                                    </button>
+                                </div>
+                                <div id="danhSachThumbnail" class="d-flex flex-wrap" style="gap: 0.75rem;"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid #E5E7EB;">
@@ -116,9 +140,32 @@
     </div>
 </div>
 
+<!-- MODAL PHÓNG TO XEM TẤT CẢ ẢNH ĐỒNG HỒ TRÊN TRANG CREATE -->
+<div class="modal fade" id="modalXemAnhCreate" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 2px; border: 1px solid #E5E7EB;">
+            <div class="modal-header" style="border-bottom: 1px solid #E5E7EB;">
+                <h5 class="modal-title font-weight-bold" style="color: #111827;">
+                    <i class="fas fa-camera mr-2" style="color: #059669;"></i>Kiểm tra ảnh chụp đồng hồ Điện & Nước
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="noiDungModalCreate" style="background-color: #F9FAFB; max-height: 80vh; overflow-y: auto;">
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <script>
+        // Bộ nhớ đệm lưu cộng dồn nhiều file ảnh khi chủ trọ chọn nhiều lần
+        let boNhoFile = new DataTransfer();
+
         function capNhatSanLuong() {
             const dienCu = parseInt(document.getElementById('inputDienCu').value) || 0;
             const dienMoi = parseInt(document.getElementById('inputDienMoi').value) || 0;
@@ -155,6 +202,106 @@
                 : `Phòng chưa có lịch sử chốt trước đó (Mặc định Cũ = 0)`;
 
             capNhatSanLuong();
+        }
+
+        // Xử lý chọn cộng dồn nhiều file ảnh & vẽ lưới Thumbnail
+        document.getElementById('inputAnhDongHo').addEventListener('change', function (e) {
+            for (let file of e.target.files) {
+                boNhoFile.items.add(file);
+            }
+            this.files = boNhoFile.files;
+            veLuoiAnhXemTruoc();
+        });
+
+        function xoaMotAnhDaChon(index) {
+            const dtMoi = new DataTransfer();
+            for (let i = 0; i < boNhoFile.files.length; i++) {
+                if (i !== index) dtMoi.items.add(boNhoFile.files[i]);
+            }
+            boNhoFile = dtMoi;
+            document.getElementById('inputAnhDongHo').files = boNhoFile.files;
+            veLuoiAnhXemTruoc();
+        }
+
+        function xoaTatCaAnhDaChon() {
+            boNhoFile = new DataTransfer();
+            document.getElementById('inputAnhDongHo').value = '';
+            veLuoiAnhXemTruoc();
+        }
+
+        function veLuoiAnhXemTruoc() {
+            const container = document.getElementById('khungXemTruocAnh');
+            const listDiv = document.getElementById('danhSachThumbnail');
+            const btnXoaAll = document.getElementById('btnXoaTatCaAnh');
+            const lblCount = document.getElementById('lblSoAnhDaChon');
+
+            listDiv.innerHTML = '';
+            const files = boNhoFile.files;
+
+            if (files.length === 0) {
+                container.classList.add('d-none');
+                btnXoaAll.classList.add('d-none');
+                return;
+            }
+
+            container.classList.remove('d-none');
+            btnXoaAll.classList.remove('d-none');
+            lblCount.innerText = `Đã đính kèm ${files.length} ảnh minh chứng (Bấm vào ảnh để phóng to):`;
+
+            Array.from(files).forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = function (ev) {
+                    const card = document.createElement('div');
+                    card.style.cssText = 'position: relative; border: 1px solid #E5E7EB; background: #FFF; padding: 6px; border-radius: 2px; width: 150px;';
+                    card.innerHTML = `
+                        <div class="small font-weight-bold text-muted mb-1 text-truncate" title="${file.name}">
+                            Ảnh #${idx + 1}: ${idx === 0 ? 'Điện/Nước' : 'Đồng hồ'}
+                        </div>
+                        <img src="${ev.target.result}" alt="Ảnh ${idx + 1}"
+                             onclick="moModalPhongToTatCa()"
+                             style="width: 100%; height: 110px; object-fit: cover; cursor: zoom-in; border: 1px solid #F3F4F6;" />
+                        <button type="button" onclick="xoaMotAnhDaChon(${idx})"
+                                class="btn btn-sm btn-link text-danger p-0 mt-1 d-block w-100 text-center"
+                                style="font-size: 0.75rem; font-weight: 700; text-decoration: none;">
+                            ✕ Gỡ ảnh này
+                        </button>
+                    `;
+                    listDiv.appendChild(card);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function moModalPhongToTatCa() {
+            const modalBody = document.getElementById('noiDungModalCreate');
+            modalBody.innerHTML = '';
+            const files = boNhoFile.files;
+
+            if (files.length === 0) return;
+
+            const row = document.createElement('div');
+            row.className = 'row';
+
+            Array.from(files).forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = function (ev) {
+                    const col = document.createElement('div');
+                    col.className = files.length === 1 ? 'col-12 mb-3' : 'col-md-6 mb-4';
+                    col.innerHTML = `
+                        <div class="p-3 bg-white" style="border: 1px solid #E5E7EB; border-radius: 2px;">
+                            <div class="font-weight-bold mb-2" style="color: #111827;">
+                                <span class="badge-editorial-mint mr-2">ẢNH #${idx + 1}</span> ${file.name}
+                            </div>
+                            <img src="${ev.target.result}" class="img-fluid w-100" style="max-height: 550px; object-fit: contain; background: #111827;" />
+                        </div>
+                    `;
+                    row.appendChild(col);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            modalBody.appendChild(row);
+            $('#modalXemAnhCreate').modal('show');
         }
 
         document.getElementById('selectMaPhong').addEventListener('change', tuDongNapChiSoCu);

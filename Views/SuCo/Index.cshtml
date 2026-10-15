@@ -1,0 +1,157 @@
+﻿@model IEnumerable<QuanLyNhaTroBinhMinh.Models.SuCo>
+
+@{
+    ViewData["Title"] = "Sự cố & Bảo trì";
+    string? trangThaiHienTai = ViewBag.TrangThaiHienTai as string;
+}
+
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">VẬN HÀNH & HỆ THỐNG</span>
+        <h1 class="editorial-title mb-1">Quản lý sự cố & Bảo trì</h1>
+        <p class="editorial-subtitle mb-0">
+            Tiếp nhận báo hỏng từ khách thuê, theo dõi tiến độ sửa chữa và tổng hợp chi phí bảo trì (Lũy kế: <strong style="color: #111827;">@(((decimal)ViewBag.TongChiPhi).ToString("N0"))đ</strong>).
+        </p>
+    </div>
+
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Create" class="btn btn-primary btn-editorial-cta">
+            <i class="fas fa-tools fa-sm mr-2"></i>+ Ghi nhận sự cố mới
+        </a>
+    </div>
+</div>
+
+@if (TempData["ThongBao"] != null)
+{
+    <div class="p-3 mb-4 bg-editorial-mint d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-check-circle mr-2"></i>@TempData["ThongBao"]</span>
+    </div>
+}
+
+<!-- THANH LỌC 3 TRẠNG THÁI CHUẨN SQL CHECK CONSTRAINT -->
+<div class="d-lg-flex justify-content-between align-items-center mb-4">
+    <div class="editorial-filter-bar mb-3 mb-lg-0">
+        <a asp-action="Index" asp-route-trangThai=""
+           class="editorial-filter-btn @(string.IsNullOrEmpty(trangThaiHienTai) ? "active" : "")">
+            Tất cả (@ViewBag.TongSuCo)
+        </a>
+        <a asp-action="Index" asp-route-trangThai="Chờ xử lý"
+           class="editorial-filter-btn @(trangThaiHienTai == "Chờ xử lý" ? "active" : "")">
+            Chờ xử lý (@ViewBag.ChoXuLy)
+        </a>
+        <a asp-action="Index" asp-route-trangThai="Đang sửa"
+           class="editorial-filter-btn @(trangThaiHienTai == "Đang sửa" ? "active" : "")">
+            Đang sửa (@ViewBag.DangSua)
+        </a>
+        <a asp-action="Index" asp-route-trangThai="Đã hoàn thành"
+           class="editorial-filter-btn @(trangThaiHienTai == "Đã hoàn thành" ? "active" : "")">
+            Đã hoàn thành (@ViewBag.DaHoanThanh)
+        </a>
+        <a asp-action="Index" asp-route-trangThai="DaXoa"
+           class="editorial-filter-btn @(trangThaiHienTai == "DaXoa" ? "active" : "")">
+            Đã ẩn (@(ViewBag.SoDaXoa ?? 0))
+        </a>
+    </div>
+
+    <form asp-action="Index" method="get" class="d-flex" style="min-width: 300px;">
+        <input type="hidden" name="trangThai" value="@trangThaiHienTai" />
+        <input type="text" name="tuKhoa" value="@ViewBag.TuKhoaHienTai"
+               class="form-control mr-2" placeholder="Tìm mô tả hỏng hóc, phòng..." />
+        <button type="submit" class="btn btn-secondary px-3"><i class="fas fa-search"></i></button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Danh sách phiếu báo cáo sự cố & bảo trì</span>
+        <span class="text-muted small">Hiển thị @Model.Count() bản ghi</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0" width="100%" cellspacing="0">
+                <thead>
+                    <tr style="white-space: nowrap;">
+                        <th>Mã phiếu</th>
+                        <th>Phòng</th>
+                        <th>Mô tả sự cố hỏng hóc</th>
+                        <th>Người báo</th>
+                        <th>Ngày tạo</th>
+                        <th class="text-right">Chi phí sửa</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">Không có phiếu sự cố nào khớp với điều kiện lọc.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            string badgeClass = item.TrangThai switch
+                            {
+                                "Đã hoàn thành" => "status-badge-available",
+                                "Đang sửa" => "status-badge-maintenance",
+                                _ => "status-badge-occupied"
+                            };
+
+                            <tr style="white-space: nowrap;">
+                                <td class="font-weight-bold" style="color: #111827;">#@item.MaSuCo</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.MaPhong))
+                                    {
+                                        <span class="badge-editorial-mint mr-1">@item.MaPhong</span>
+                                        <strong style="color: #111827;">@(item.MaPhongNavigation?.TenPhong ?? "")</strong>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Khu vực chung</span>
+                                    }
+                                </td>
+                                <td style="white-space: normal; min-width: 240px; color: #111827; font-weight: 500;">
+                                    @item.MoTa
+                                </td>
+                                <td>
+                                    <strong style="color: #111827;">@(item.MaNguoiDungBaoNavigation?.TenDangNhap ?? item.MaNguoiDungBao ?? "—")</strong>
+                                </td>
+                                <td class="text-muted">@(item.NgayTao?.ToString("dd/MM/yyyy HH:mm"))</td>
+                                <td class="text-right font-weight-bold" style="color: #111827;">
+                                    @((item.ChiPhiSua ?? 0).ToString("N0"))đ
+                                </td>
+                                <td class="text-center">
+                                    <span class="@badgeClass">@item.TrangThai</span>
+                                </td>
+                                <td class="text-right">
+                                    @if (item.DaXoa == true)
+                                    {
+                                        <form asp-action="Restore" asp-route-id="@item.MaSuCo" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-primary btn-sm py-1 px-3" style="background-color: #059669; border-color: #059669;">
+                                                Khôi phục
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@item.MaSuCo" class="btn btn-secondary btn-sm py-1 px-2 mr-1">
+                                            Cập nhật xử lý
+                                        </a>
+                                        <form asp-action="Delete" asp-route-id="@item.MaSuCo" method="post" class="d-inline"
+                                              onsubmit="return confirm('Xác nhận ẩn phiếu sự cố #@item.MaSuCo?');">
+                                            <button type="submit" class="btn btn-link btn-sm text-muted p-0" style="font-weight: 600; text-decoration: none;">
+                                                Ẩn
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

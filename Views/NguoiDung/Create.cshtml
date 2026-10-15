@@ -1,0 +1,60 @@
+﻿@model QuanLyNhaTroBinhMinh.Models.NguoiDung
+
+@{
+    ViewData["Title"] = "Cấp tài khoản mới";
+}
+
+<div class="d-sm-flex align-items-end justify-content-between mb-5 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">QUẢN TRỊ NGƯỜI DÙNG</span>
+        <h1 class="editorial-title mb-1">Cấp tài khoản đăng nhập mới</h1>
+        <p class="editorial-subtitle mb-0">Tạo tài khoản cho khách thuê đại diện phòng để đăng nhập tra cứu và thanh toán hóa đơn.</p>
+    </div>
+    <div class="mt-4 mt-sm-0">
+        <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left fa-sm mr-2"></i>Quay lại danh sách</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-6 col-lg-8">
+        <div class="card">
+            <div class="card-header">Thông tin tài khoản mới</div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="All" class="text-danger small mb-3"></div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-5 mb-4">
+                            <label asp-for="MaNguoiDung" class="editorial-label">Mã người dùng *</label>
+                            <input asp-for="MaNguoiDung" class="form-control" required />
+                        </div>
+
+                        <div class="form-group col-md-7 mb-4">
+                            <label asp-for="MaVaiTro" class="editorial-label">Vai trò phân quyền *</label>
+                            <select asp-for="MaVaiTro" asp-items="ViewBag.DanhSachVaiTro" class="form-control"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-row mb-5">
+                        <div class="form-group col-md-6">
+                            <label asp-for="TenDangNhap" class="editorial-label">Tên đăng nhập (Username) *</label>
+                            <input asp-for="TenDangNhap" class="form-control" placeholder="VD: nguyenvanb, phong102..." required />
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <label asp-for="MatKhau" class="editorial-label">Mật khẩu khởi tạo *</label>
+                            <input asp-for="MatKhau" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid #E5E7EB;">
+                        <a asp-action="Index" class="btn btn-secondary mr-3">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary btn-editorial-cta">
+                            <i class="fas fa-check fa-sm mr-2"></i>Tạo tài khoản
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
