@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Cổng Cư Dân Bình Minh</title>
+    <link href="~/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="~/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="~/css/editorial-minimalist.css" rel="stylesheet" asp-append-version="true">
+    <style>
+        /* Mở rộng khung chuẩn SaaS Dashboard (1380px) để xóa khoảng trống thừa 2 bên màn hình */
+        .tenant-container {
+            max-width: 1380px;
+            margin: 0 auto;
+            padding: 0 1.75rem;
+        }
+        /* Thanh Tab phẳng Editorial Minimalist */
+        .tenant-nav-tabs {
+            border-bottom: 2px solid #E5E7EB;
+            gap: 0.5rem;
+        }
+
+            .tenant-nav-tabs .nav-link {
+                border: none;
+                border-bottom: 3px solid transparent;
+                color: #6B7280;
+                font-weight: 700;
+                font-size: 0.9rem;
+                padding: 0.85rem 1.25rem;
+                margin-bottom: -2px;
+                border-radius: 0;
+                transition: all 0.15s ease;
+            }
+
+                .tenant-nav-tabs .nav-link:hover {
+                    color: #111827;
+                    background-color: #F9FAFB;
+                }
+
+                .tenant-nav-tabs .nav-link.active {
+                    color: #059669;
+                    background-color: transparent;
+                    border-bottom: 3px solid #059669;
+                }
+        /* Khung chỉ số gộp gọn trên Hero Strip */
+        .hero-stat-box {
+            padding: 1rem 1.25rem;
+            border-right: 1px solid #E5E7EB;
+        }
+
+            .hero-stat-box:last-child {
+                border-right: none;
+            }
+
+        @@media (max-width: 991px) {
+            .hero-stat-box {
+                border-right: none;
+                border-bottom: 1px solid #E5E7EB;
+            }
+        }
+    </style>
+</head>
+<body style="background-color: #F3F4F6; color: #111827; font-family: 'Inter', sans-serif;">
+
+    <!-- THANH TOPBAR TRẢI RỘNG CÂN ĐỐI -->
+    <nav class="navbar navbar-expand navbar-light bg-white mb-4 py-3" style="border-bottom: 1px solid #E5E7EB;">
+        <div class="tenant-container w-100 d-flex align-items-center justify-content-between">
+            <a class="navbar-brand d-flex align-items-center m-0" asp-controller="KhachThue" asp-action="Index">
+                <div class="mr-3 px-2 py-1" style="background-color: #111827; color: #FFFFFF; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.06em;">
+                    BÌNH MINH
+                </div>
+                <div>
+                    <span class="font-weight-bold" style="color: #111827; font-size: 0.95rem; letter-spacing: -0.01em;">CỔNG THÔNG TIN CƯ DÂN</span>
+                    <span class="badge-editorial-mint ml-2 d-none d-md-inline-block">KHÁCH THUÊ</span>
+                </div>
+            </a>
+
+            <div class="d-flex align-items-center" style="gap: 0.75rem;">
+                <div class="text-right d-none d-sm-block mr-2">
+                    <div class="font-weight-bold" style="color: #111827; font-size: 0.85rem; line-height: 1.2;">
+                        <i class="fas fa-user-circle mr-1" style="color: #059669;"></i>@(User.Identity?.Name ?? "Khách thuê")
+                    </div>
+                    <small class="text-muted" style="font-size: 0.75rem;">Đại diện hợp đồng</small>
+                </div>
+
+                <button type="button" class="btn btn-secondary btn-sm py-1 px-3" data-toggle="modal" data-target="#modalDoiMatKhau">
+                    <i class="fas fa-key fa-xs mr-1"></i>Đổi mật khẩu
+                </button>
+
+                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline m-0">
+                    <button type="submit" class="btn btn-secondary btn-sm py-1 px-3"
+                            style="color: #991B1B !important; border-color: #FCA5A5 !important; background-color: #FEF2F2 !important; font-weight: 700;">
+                        <i class="fas fa-sign-out-alt fa-xs mr-1"></i>Đăng xuất
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <!-- NỘI DUNG CHÍNH RỘNG 1380PX -->
+    <div class="tenant-container pb-5">
+        @RenderBody()
+    </div>
+
+    <!-- MODAL ĐỔI MẬT KHẨU CÁ NHÂN -->
+    <div class="modal fade" id="modalDoiMatKhau" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content" style="border-radius: 2px; border: 1px solid #E5E7EB;">
+                <div class="modal-header" style="border-bottom: 1px solid #E5E7EB;">
+                    <h5 class="modal-title font-weight-bold" style="color: #111827;">
+                        <i class="fas fa-lock mr-2" style="color: #059669;"></i>Đổi mật khẩu đăng nhập
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form asp-controller="Account" asp-action="DoiMatKhau" method="post">
+                    <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                    <div class="modal-body">
+                        <div class="form-group mb-3">
+                            <label class="editorial-label">Mật khẩu hiện tại *</label>
+                            <input type="password" name="matKhauCu" class="form-control" required />
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="editorial-label">Mật khẩu mới *</label>
+                            <input type="password" name="matKhauMoi" class="form-control" minlength="4" required />
+                        </div>
+                        <div class="form-group mb-0">
+                            <label class="editorial-label">Nhập lại mật khẩu mới *</label>
+                            <input type="password" name="xacNhanMatKhau" class="form-control" minlength="4" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #E5E7EB;">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary btn-editorial-cta">Cập nhật mật khẩu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/vendor/jquery/jquery.min.js"></script>
+    <script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

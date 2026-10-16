@@ -1,0 +1,82 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Đăng nhập hệ thống";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập — Quản lý Nhà trọ Bình Minh</title>
+    <link href="~/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="~/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="~/css/editorial-minimalist.css" rel="stylesheet" asp-append-version="true">
+</head>
+<body style="background-color: #FAFAFA; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-5 col-lg-6 col-md-8">
+                <div class="card" style="border: 1px solid #E5E7EB; border-top: 4px solid #059669; border-radius: 2px; box-shadow: none;">
+                    <div class="card-body p-5">
+                        <div class="mb-4">
+                            <span class="badge-editorial-mint mb-2 d-inline-block">HỆ THỐNG VẬN HÀNH LƯU TRÚ</span>
+                            <h1 class="editorial-title mb-1" style="font-size: 1.75rem;">Nhà trọ Bình Minh</h1>
+                            <p class="editorial-subtitle mb-0">Cổng đăng nhập dành cho Chủ cơ sở và Cư dân đại diện phòng.</p>
+                        </div>
+
+                        @if (ViewBag.Loi != null)
+                        {
+                            <div class="alert-editorial-danger mb-4"
+                                 style="background-color: #FEF2F2; border: 1px solid #F87171; color: #991B1B; padding: 0.85rem 1rem; border-radius: 2px; font-weight: 600; font-size: 0.875rem;">
+                                <i class="fas fa-exclamation-triangle mr-2" style="color: #DC2626;"></i>@ViewBag.Loi
+                            </div>
+                        }
+
+                        <form asp-controller="Account" asp-action="Login" method="post">
+                            <div class="form-group mb-4">
+                                <label class="editorial-label">Tên đăng nhập *</label>
+                                <input type="text" name="tenDangNhap" id="inputUser" class="form-control" placeholder="Nhập tên đăng nhập..." required autofocus />
+                            </div>
+
+                            <div class="form-group mb-4">
+                                <label class="editorial-label">Mật khẩu *</label>
+                                <input type="password" name="matKhau" id="inputPass" class="form-control" placeholder="••••••••" required />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-editorial-cta btn-block py-2 mb-4" style="font-size: 0.95rem;">
+                                <i class="fas fa-sign-in-alt mr-2"></i>Đăng nhập vào hệ thống
+                            </button>
+                        </form>
+
+                        <!-- Khung điền nhanh tài khoản Demo phục vụ kiểm thử & bảo vệ đồ án -->
+                        <div class="pt-3" style="border-top: 1px solid #E5E7EB;">
+                            <div class="small font-weight-bold text-muted mb-2">CHỌN NHANH TÀI KHOẢN KIỂM THỬ:</div>
+                            <div class="d-flex" style="gap: 0.5rem;">
+                                <button type="button" onclick="dienNhanh('admin', '123456')" class="btn btn-secondary btn-sm flex-fill py-2">
+                                    <i class="fas fa-user-shield mr-1" style="color: #059669;"></i>Chủ trọ (admin)
+                                </button>
+                                <button type="button" onclick="dienNhanh('nguyenvana', '123456')" class="btn btn-secondary btn-sm flex-fill py-2">
+                                    <i class="fas fa-user mr-1" style="color: #059669;"></i>Khách thuê (nguyenvana)
+                                </button>
+                            </div>
+                            <small class="text-muted d-block mt-3 text-center">
+                                * Tài khoản khách thuê do Chủ trọ cấp trực tiếp khi ký hợp đồng thuê phòng.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function dienNhanh(u, p) {
+            document.getElementById('inputUser').value = u;
+            document.getElementById('inputPass').value = p;
+        }
+    </script>
+</body>
+</html>

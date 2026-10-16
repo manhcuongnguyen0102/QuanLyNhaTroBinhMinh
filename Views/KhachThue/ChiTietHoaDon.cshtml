@@ -1,0 +1,236 @@
+﻿@model QuanLyNhaTroBinhMinh.Models.HoaDon
+
+@{
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+    ViewData["Title"] = $"Thanh toán hóa đơn #{Model.MaHoaDon}";
+
+    var phong = Model.MaHopDongNavigation?.MaPhongNavigation;
+    var chiSo = ViewBag.ChiSoKyNay as QuanLyNhaTroBinhMinh.Models.ChiSoDienNuoc;
+
+    decimal giaPhongCung = phong?.GiaThueCung ?? 0;
+    decimal tongTienHoaDon = Model.TongTien ?? 0;
+    decimal daThu = Model.ThanhToans.Sum(t => t.SoTienTra);
+    decimal conNo = Math.Max(0, tongTienHoaDon - daThu);
+    bool daTatToan = Model.TrangThai == "Đã thanh toán";
+
+    var dsAnhDongHo = (chiSo != null && !string.IsNullOrWhiteSpace(chiSo.AnhDongHo))
+        ? chiSo.AnhDongHo.Split(';', StringSplitOptions.RemoveEmptyEntries).Where(p => p.StartsWith("/uploads/")).ToArray()
+        : Array.Empty<string>();
+}
+
+<div class="d-sm-flex align-items-end justify-content-between mb-4 pb-3" style="border-bottom: 1px solid #E5E7EB;">
+    <div>
+        <span class="badge-editorial-mint mb-2 d-inline-block">CHI TIẾT & THANH TOÁN HÓA ĐƠN</span>
+        <h1 class="editorial-title mb-1">Hóa đơn #@Model.MaHoaDon (Tháng @(Model.Thang?.ToString("D2"))/@Model.Nam)</h1>
+        <p class="editorial-subtitle mb-0">
+            @(phong?.TenPhong ?? $"Phòng {Model.MaHopDongNavigation?.MaPhong}") — Hợp đồng #@Model.MaHopDong
+        </p>
+    </div>
+
+    <div class="mt-3 mt-sm-0">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left fa-sm mr-2"></i>Quay lại cổng cư dân
+        </a>
+    </div>
+</div>
+
+@if (TempData["ThongBao"] != null)
+{
+    <div class="p-3 mb-4 bg-editorial-mint d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-check-circle mr-2"></i>@TempData["ThongBao"]</span>
+    </div>
+}
+@if (TempData["Loi"] != null)
+{
+    <div class="alert-editorial-danger mb-4"
+         style="background-color: #FEF2F2; border: 1px solid #F87171; color: #991B1B; padding: 1rem 1.25rem; border-radius: 2px; font-weight: 600;">
+        <i class="fas fa-exclamation-triangle mr-2" style="color: #DC2626;"></i>@TempData["Loi"]
+    </div>
+}
+
+<div class="row">
+    <!-- CỘT TRÁI (7 PHẦN): BẢNG KÊ CHI TIẾT HÓA ĐƠN & ẢNH MINH CHỨNG ĐỒNG HỒ -->
+    <div class="col-xl-7 col-lg-7 mb-4">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Bảng kê chi tiết các khoản thu</span>
+                <span class="@(daTatToan ? "status-badge-available" : "status-badge-maintenance")">@Model.TrangThai</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0" width="100%" cellspacing="0">
+                        <thead>
+                            <tr style="white-space: nowrap;">
+                                <th>Hạng mục</th>
+                                <th>Chỉ số / Đơn vị</th>
+                                <th class="text-right">Đơn giá</th>
+                                <th class="text-center">SL</th>
+                                <th class="text-right">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="white-space: nowrap;">
+                                <td class="font-weight-bold" style="color: #111827;">1. Tiền thuê phòng cứng</td>
+                                <td class="text-muted">@(phong?.TenPhong ?? $"Phòng {Model.MaHopDongNavigation?.MaPhong}")</td>
+                                <td class="text-right">@giaPhongCung.ToString("N0")đ</td>
+                                <td class="text-center">1</td>
+                                <td class="text-right font-weight-bold" style="color: #111827;">@giaPhongCung.ToString("N0")đ</td>
+                            </tr>
+
+                            @{
+                                int stt = 2;
+                            }
+                            @foreach (var ct in Model.ChiTietHoaDons)
+                            {
+                                string dienGiai = ct.MaDichVuNavigation?.DonViTinh ?? "";
+                                if (ct.MaDichVu?.Trim() == "DV_DIEN" && chiSo != null)
+                                {
+                                    dienGiai = $"Cũ: {chiSo.DienCu} → Mới: {chiSo.DienMoi} (kWh)";
+                                }
+                                else if (ct.MaDichVu?.Trim() == "DV_NUOC" && chiSo != null)
+                                {
+                                    dienGiai = $"Cũ: {chiSo.NuocCu} → Mới: {chiSo.NuocMoi} (Khối)";
+                                }
+
+                                <tr style="white-space: nowrap;">
+                                    <td class="font-weight-bold" style="color: #111827;">@(stt++). @(ct.MaDichVuNavigation?.TenDichVu ?? ct.MaDichVu)</td>
+                                    <td class="text-muted">@dienGiai</td>
+                                    <td class="text-right">@ct.DonGia.ToString("N0")đ</td>
+                                    <td class="text-center">@ct.SoLuong</td>
+                                    <td class="text-right font-weight-bold" style="color: #111827;">@ct.ThanhTien.ToString("N0")đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot style="background-color: #FAFAFA; border-top: 2px solid #E5E7EB;">
+                            <tr>
+                                <td colspan="4" class="text-right font-weight-bold" style="color: #111827;">TỔNG CỘNG HÓA ĐƠN:</td>
+                                <td class="text-right font-weight-bold" style="color: #111827; font-size: 1.15rem;">@tongTienHoaDon.ToString("N0")đ</td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="text-right font-weight-bold" style="color: #059669;">ĐÃ THANH TOÁN:</td>
+                                <td class="text-right font-weight-bold" style="color: #059669;">@daThu.ToString("N0")đ</td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="text-right font-weight-bold" style="color: #DC2626;">SỐ TIỀN CÒN CẦN ĐÓNG:</td>
+                                <td class="text-right font-weight-bold" style="color: #DC2626; font-size: 1.15rem;">@conNo.ToString("N0")đ</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bộ ảnh chụp đồng hồ Điện & Nước của kỳ này -->
+        @if (dsAnhDongHo.Length > 0)
+        {
+            <div class="card">
+                <div class="card-header">Ảnh chụp đồng hồ Điện & Nước kỳ Tháng @(Model.Thang?.ToString("D2"))/@Model.Nam</div>
+                <div class="card-body">
+                    <div class="row">
+                        @for (int i = 0; i < dsAnhDongHo.Length; i++)
+                        {
+                            <div class="col-md-6 mb-3">
+                                <a href="@dsAnhDongHo[i]" target="_blank">
+                                    <img src="@dsAnhDongHo[i]" class="img-fluid w-100" style="max-height: 220px; object-fit: cover; border: 1px solid #E5E7EB;" />
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- CỘT PHẢI (5 PHẦN): KHUNG THANH TOÁN TRỰC TUYẾN & LỊCH SỬ CÁC ĐỢT ĐÃ ĐÓNG -->
+    <div class="col-xl-5 col-lg-5 mb-4">
+        @if (!daTatToan)
+        {
+            <div class="card mb-4" style="border-top: 4px solid #059669;">
+                <div class="card-header" style="background-color: #ECFDF5 !important; color: #059669 !important;">
+                    <i class="fas fa-credit-card mr-2"></i>Thực hiện thanh toán hóa đơn
+                </div>
+                <div class="card-body">
+                    <form asp-action="ThanhToanHoaDon" method="post">
+                        <input type="hidden" name="maHoaDon" value="@Model.MaHoaDon" />
+
+                        <div class="form-group mb-3">
+                            <label class="editorial-label">Số tiền muốn thanh toán đợt này (VNĐ) *</label>
+                            <input type="number" name="soTienTra" value="@conNo" min="1000" max="@conNo" step="1000"
+                                   class="form-control font-weight-bold" style="font-size: 1.1rem; color: #059669;" required />
+                            <small class="text-muted d-block mt-1">
+                                Bạn có thể thanh toán toàn bộ (<strong>@conNo.ToString("N0")đ</strong>) hoặc nhập số tiền nhỏ hơn để thanh toán từng đợt.
+                            </small>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label class="editorial-label">Phương thức thanh toán *</label>
+                            <select name="phuongThuc" class="form-control">
+                                <option value="Chuyển khoản">Chuyển khoản ngân hàng (Tự động gạch nợ)</option>
+                                <option value="Tiền mặt">Tiền mặt</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-editorial-cta btn-block py-2">
+                            <i class="fas fa-check-circle mr-2"></i>Xác nhận thanh toán ngay
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="p-4 mb-4 bg-editorial-mint text-center">
+                <i class="fas fa-check-circle fa-2x mb-2" style="color: #059669;"></i>
+                <div class="font-weight-bold" style="font-size: 1.05rem;">Hóa đơn này đã được thanh toán đủ 100%!</div>
+                <small>Cảm ơn bạn đã hoàn thành nghĩa vụ thanh toán đúng hạn.</small>
+            </div>
+        }
+
+        <!-- Bảng Lịch sử các đợt thanh toán của bạn -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Lịch sử các đợt đã thanh toán</span>
+                <span class="badge-editorial-mint">@Model.ThanhToans.Count đợt</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th style="padding: 0.75rem 1rem;">Giao dịch / Thời gian</th>
+                                <th class="text-center" style="padding: 0.75rem 0.5rem;">Phương thức</th>
+                                <th class="text-right" style="padding: 0.75rem 1rem;">Số tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.ThanhToans.Any())
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-center py-4 text-muted">Chưa có đợt thanh toán nào.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var tt in Model.ThanhToans.OrderByDescending(x => x.NgayTra))
+                                {
+                                    <tr>
+                                        <td style="padding: 0.85rem 1rem;">
+                                            <div class="font-weight-bold" style="color: #111827; font-size: 0.875rem;">#@tt.MaThanhToan</div>
+                                            <small class="text-muted">@(tt.NgayTra?.ToString("dd/MM/yyyy HH:mm"))</small>
+                                        </td>
+                                        <td class="text-center align-middle" style="padding: 0.85rem 0.5rem;">
+                                            <span class="badge-editorial-mint">@tt.PhuongThuc</span>
+                                        </td>
+                                        <td class="text-right align-middle font-weight-bold" style="padding: 0.85rem 1rem; color: #059669; white-space: nowrap;">
+                                            +@tt.SoTienTra.ToString("N0")đ
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

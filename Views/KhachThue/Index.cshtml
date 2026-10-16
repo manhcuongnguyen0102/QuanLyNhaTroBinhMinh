@@ -1,0 +1,541 @@
+﻿@model QuanLyNhaTroBinhMinh.Models.HopDong?
+
+@{
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+    ViewData["Title"] = "Không gian cư dân";
+
+    var lichSuDienNuoc = ViewBag.LichSuDienNuoc as List<QuanLyNhaTroBinhMinh.Models.ChiSoDienNuoc> ?? new();
+    var danhSachSuCo = ViewBag.DanhSachSuCo as List<QuanLyNhaTroBinhMinh.Models.SuCo> ?? new();
+    var bangTin = ViewBag.BangTinThongBao as List<QuanLyNhaTroBinhMinh.Models.ThongBao> ?? new();
+
+    var dsHoaDon = Model?.HoaDons.OrderBy(h => h.TrangThai == "Đã thanh toán" ? 1 : 0)
+                                 .ThenByDescending(h => h.Nam)
+                                 .ThenByDescending(h => h.Thang)
+                                 .ToList() ?? new();
+
+    var hoaDonCanDong = dsHoaDon.FirstOrDefault(h => h.TrangThai != "Đã thanh toán");
+    decimal tongConNo = dsHoaDon
+        .Where(h => h.TrangThai != "Đã thanh toán")
+        .Sum(h => Math.Max(0, (h.TongTien ?? 0) - h.ThanhToans.Sum(t => t.SoTienTra)));
+}
+
+<style>
+    /* Đồng bộ độ rộng khung Cổng cư dân & Topbar thẳng hàng tuyệt đối */
+    .container, .tenant-container {
+        max-width: 1320px !important;
+    }
+
+    /* Khung Hero: Căn lề trái/phải 24px đồng nhất giữa phần Tiêu đề và 4 ô KPI */
+    .tenant-hero-top {
+        padding: 1.5rem 1.75rem;
+        border-bottom: 1px solid #E5E7EB;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+    }
+
+    /* Lưới 4 ô chỉ số bằng nhau tuyệt đối, không bị lệch chiều cao hay lệch lề */
+    .tenant-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        background-color: #FFFFFF;
+    }
+
+    .tenant-kpi-cell {
+        padding: 1.15rem 1.75rem;
+        border-right: 1px solid #E5E7EB;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+        .tenant-kpi-cell:last-child {
+            border-right: none;
+        }
+
+    /* Thanh 3 Tab chia đều 3 cột trên 1 hàng ngang duy nhất, không bao giờ rớt dòng */
+    .tenant-tabs-clean {
+        display: flex;
+        flex-wrap: nowrap;
+        width: 100%;
+        border-bottom: 2px solid #E5E7EB;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+        .tenant-tabs-clean .nav-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .tenant-tabs-clean .nav-link {
+            display: block;
+            padding: 0.9rem 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #6B7280;
+            border: none;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            white-space: nowrap;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+            .tenant-tabs-clean .nav-link:hover {
+                color: #111827;
+                background-color: #F9FAFB;
+            }
+
+            .tenant-tabs-clean .nav-link.active {
+                color: #059669;
+                background-color: #FFFFFF;
+                border-bottom: 3px solid #059669;
+            }
+
+    @@media (max-width: 991px) {
+        .tenant-hero-top {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .tenant-kpi-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .tenant-kpi-cell {
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .tenant-tabs-clean {
+            overflow-x: auto;
+        }
+    }
+</style>
+
+@if (TempData["ThongBao"] != null)
+{
+    <div class="p-3 mb-4 bg-editorial-mint d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-check-circle mr-2"></i>@TempData["ThongBao"]</span>
+    </div>
+}
+@if (TempData["Loi"] != null)
+{
+    <div class="alert-editorial-danger mb-4"
+         style="background-color: #FEF2F2; border: 1px solid #F87171; color: #991B1B; padding: 1rem 1.25rem; border-radius: 2px; font-weight: 600;">
+        <i class="fas fa-exclamation-triangle mr-2" style="color: #DC2626;"></i>@TempData["Loi"]
+    </div>
+}
+
+@if (Model == null)
+{
+    <div class="card p-5 text-center">
+        <h3 class="font-weight-bold mb-2" style="color: #111827;">Tài khoản của bạn chưa được gán vào Hợp đồng thuê phòng</h3>
+        <p class="text-muted mb-0">Vui lòng liên hệ Chủ trọ để gán tài khoản đại diện vào hợp đồng lưu trú của bạn.</p>
+    </div>
+}
+else
+{
+    <!-- KHỐI 1: DẢI HỒ SƠ HỢP NHẤT (ĐÃ CĂN THẲNG TRỤC TRÁI - PHẢI & CHỐNG RỚT DÒNG NÚT BẤM) -->
+    <div class="card mb-4" style="border-top: 4px solid #059669; overflow: hidden;">
+        <div class="tenant-hero-top">
+            <!-- Cụm thông tin phòng bên trái -->
+            <div>
+                <div class="d-flex align-items-center mb-2" style="gap: 0.65rem;">
+                    <span class="badge-editorial-mint">HỒ SƠ LƯU TRÚ ĐANG HIỆU LỰC</span>
+                    <span class="text-muted small font-weight-bold">Mã HĐ: #@Model.MaHopDong</span>
+                </div>
+                <div class="d-flex align-items-baseline flex-wrap" style="gap: 0.75rem;">
+                    <h1 class="editorial-title mb-0" style="font-size: 1.85rem; line-height: 1.1;">
+                        @(Model.MaPhongNavigation?.TenPhong ?? $"Phòng {Model.MaPhong}")
+                    </h1>
+                    <span class="text-muted font-weight-bold" style="font-size: 0.95rem;">
+                        (@(Model.MaPhongNavigation?.DienTich ?? 0)m²)
+                    </span>
+                    <span class="text-muted small">
+                        • Thời hạn: <strong style="color: #111827;">@Model.NgayBatDau.ToString("dd/MM/yyyy") → @Model.NgayKetThuc.ToString("dd/MM/yyyy")</strong>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Cụm 2 nút hành động nằm trên 1 hàng ngang duy nhất sát lề phải -->
+            <div class="d-flex align-items-center flex-shrink-0" style="gap: 0.65rem;">
+                @if (hoaDonCanDong != null)
+                {
+                    <a asp-action="ChiTietHoaDon" asp-route-id="@hoaDonCanDong.MaHoaDon"
+                       class="btn btn-primary btn-editorial-cta" style="white-space: nowrap;">
+                        <i class="fas fa-credit-card fa-sm mr-2"></i>Thanh toán kỳ T@(hoaDonCanDong.Thang?.ToString("D2"))/@hoaDonCanDong.Nam (@tongConNo.ToString("N0")đ)
+                    </a>
+                }
+                <button type="button" class="btn btn-secondary" style="white-space: nowrap;" data-toggle="modal" data-target="#modalBaoSuCo">
+                    <i class="fas fa-tools fa-sm mr-2" style="color: #059669;"></i>+ Báo hỏng / Bảo trì
+                </button>
+            </div>
+        </div>
+
+        <!-- Lưới 4 chỉ số KPI thẳng lề 100% với chữ Phòng 101 ở trên -->
+        <div class="tenant-kpi-grid">
+            <div class="tenant-kpi-cell">
+                <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Giá thuê phòng cứng</div>
+                <div class="h5 font-weight-bold mb-0" style="color: #111827;">
+                    @((Model.MaPhongNavigation?.GiaThueCung ?? 0).ToString("N0"))đ <span class="text-muted small font-weight-normal">/ tháng</span>
+                </div>
+            </div>
+
+            <div class="tenant-kpi-cell">
+                <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Tiền cọc bảo đảm</div>
+                <div class="h5 font-weight-bold mb-0" style="color: #059669;">
+                    @((Model.TienCoc ?? 0).ToString("N0"))đ
+                </div>
+            </div>
+
+            <div class="tenant-kpi-cell" style="@(tongConNo > 0 ? "background-color: #FEF2F2;" : "")">
+                <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: @(tongConNo > 0 ? "#991B1B" : "#6B7280");">
+                    Dư nợ cần thanh toán
+                </div>
+                <div class="h5 font-weight-bold mb-0" style="color: @(tongConNo > 0 ? "#DC2626" : "#059669");">
+                    @tongConNo.ToString("N0")đ
+                </div>
+            </div>
+
+            <div class="tenant-kpi-cell">
+                <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Dịch vụ cố định & Cư dân</div>
+                <div class="font-weight-bold text-truncate" style="color: #111827; font-size: 0.95rem;">
+                    @Model.KhachOs.Count người ở
+                    <span class="text-muted font-weight-normal small">
+                        • @(Model.DichVuHopDongs.Any() ? string.Join(", ", Model.DichVuHopDongs.Select(d => d.MaDichVuNavigation?.TenDichVu ?? d.MaDichVu)) : "Không ĐK")
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KHỐI 2: BỐ CỤC 2 CỘT CÂN ĐỐI -->
+    <div class="row">
+        <!-- CỘT TRÁI (8 PHẦN): TRUNG TÂM TRA CỨU 3 TABS TRÊN 1 HÀNG NGANG -->
+        <div class="col-xl-8 col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white p-0">
+                    <ul class="nav tenant-tabs-clean" id="tenantWorkspaceTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="tab-hoadon-link" data-toggle="tab" href="#tabHoaDon" role="tab">
+                                <i class="fas fa-file-invoice-dollar mr-2"></i>1. Hóa đơn & Thanh toán (@dsHoaDon.Count)
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="tab-diennuoc-link" data-toggle="tab" href="#tabDienNuoc" role="tab">
+                                <i class="fas fa-tachometer-alt mr-2"></i>2. Chỉ số Điện Nước (@lichSuDienNuoc.Count)
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="tab-thanhvien-link" data-toggle="tab" href="#tabThanhVien" role="tab">
+                                <i class="fas fa-users mr-2"></i>3. Thành viên cùng phòng (@Model.KhachOs.Count)
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="tab-content">
+
+                        <!-- TAB 1: DANH SÁCH HÓA ĐƠN -->
+                        <div class="tab-pane fade show active" id="tabHoaDon" role="tabpanel">
+                            <div class="table-responsive">
+                                <table class="table mb-0" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th style="padding: 0.85rem 1.25rem;">Kỳ hóa đơn / Mã phiếu</th>
+                                            <th class="text-right" style="padding: 0.85rem 1rem;">Tổng cộng</th>
+                                            <th class="text-right" style="padding: 0.85rem 1rem;">Đã đóng</th>
+                                            <th class="text-right" style="padding: 0.85rem 1rem;">Còn nợ</th>
+                                            <th class="text-center" style="padding: 0.85rem 1rem;">Trạng thái</th>
+                                            <th class="text-right" style="padding: 0.85rem 1.25rem;">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (!dsHoaDon.Any())
+                                        {
+                                            <tr>
+                                                <td colspan="6" class="text-center py-5 text-muted">Chưa có hóa đơn nào được phát hành cho hợp đồng này.</td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var hd in dsHoaDon)
+                                            {
+                                                decimal tong = hd.TongTien ?? 0;
+                                                decimal daTra = hd.ThanhToans.Sum(t => t.SoTienTra);
+                                                decimal conNo = Math.Max(0, tong - daTra);
+                                                bool daXong = hd.TrangThai == "Đã thanh toán";
+
+                                                <tr style="@(!daXong ? "background-color: #FFFBEB;" : "")">
+                                                    <td style="padding: 0.9rem 1.25rem;">
+                                                        <div class="font-weight-bold" style="color: #111827; font-size: 0.95rem;">
+                                                            Tháng @(hd.Thang?.ToString("D2"))/@hd.Nam
+                                                        </div>
+                                                        <small class="text-muted font-weight-bold">#@hd.MaHoaDon</small>
+                                                    </td>
+                                                    <td class="text-right align-middle font-weight-bold" style="padding: 0.9rem 1rem; color: #111827;">
+                                                        @tong.ToString("N0")đ
+                                                    </td>
+                                                    <td class="text-right align-middle font-weight-bold" style="padding: 0.9rem 1rem; color: #059669;">
+                                                        @daTra.ToString("N0")đ
+                                                    </td>
+                                                    <td class="text-right align-middle font-weight-bold" style="padding: 0.9rem 1rem; color: @(conNo > 0 ? "#DC2626" : "#6B7280");">
+                                                        @conNo.ToString("N0")đ
+                                                    </td>
+                                                    <td class="text-center align-middle" style="padding: 0.9rem 1rem;">
+                                                        <span class="@(daXong ? "status-badge-available" : (hd.TrangThai == "Thanh toán một phần" ? "status-badge-maintenance" : "status-badge-occupied"))">
+                                                            @hd.TrangThai
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-right align-middle" style="padding: 0.9rem 1.25rem; white-space: nowrap;">
+                                                        <a asp-action="ChiTietHoaDon" asp-route-id="@hd.MaHoaDon"
+                                                           class="btn @(daXong ? "btn-secondary" : "btn-primary btn-editorial-cta") btn-sm py-1 px-3">
+                                                            @(daXong ? "Xem biên lai" : "Thanh toán ngay →")
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: CHỈ SỐ ĐIỆN NƯỚC & ẢNH ĐỒNG HỒ -->
+                        <div class="tab-pane fade" id="tabDienNuoc" role="tabpanel">
+                            <div class="table-responsive">
+                                <table class="table mb-0" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th style="padding: 0.85rem 1.25rem;">Kỳ chốt</th>
+                                            <th style="padding: 0.85rem 1rem;">Đồng hồ Điện (Cũ → Mới)</th>
+                                            <th style="padding: 0.85rem 1rem;">Đồng hồ Nước (Cũ → Mới)</th>
+                                            <th class="text-right" style="padding: 0.85rem 1.25rem;">Ảnh chụp minh chứng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (!lichSuDienNuoc.Any())
+                                        {
+                                            <tr>
+                                                <td colspan="4" class="text-center py-5 text-muted">Chưa có dữ liệu chốt điện nước của phòng này.</td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var cs in lichSuDienNuoc)
+                                            {
+                                                int soDien = (cs.DienMoi ?? 0) - (cs.DienCu ?? 0);
+                                                int soNuoc = (cs.NuocMoi ?? 0) - (cs.NuocCu ?? 0);
+                                                var dsAnh = string.IsNullOrWhiteSpace(cs.AnhDongHo)
+                                                ? Array.Empty<string>()
+                                                : cs.AnhDongHo.Split(';', StringSplitOptions.RemoveEmptyEntries)
+                                                .Where(p => p.StartsWith("/uploads/"))
+                                                .ToArray();
+                                                string modalId = $"modalAnhKhach_{cs.MaChiSo.Replace(" ", "_")}";
+
+                                                <tr>
+                                                    <td class="align-middle font-weight-bold" style="padding: 0.9rem 1.25rem; color: #111827;">
+                                                        Tháng @(cs.Thang?.ToString("D2"))/@cs.Nam
+                                                        <div class="small text-muted font-weight-normal">Mã #@cs.MaChiSo</div>
+                                                    </td>
+                                                    <td class="align-middle" style="padding: 0.9rem 1rem;">
+                                                        <span class="text-muted">@cs.DienCu → <strong style="color: #111827;">@cs.DienMoi</strong></span>
+                                                        <span class="status-badge-available ml-2">@soDien kWh</span>
+                                                    </td>
+                                                    <td class="align-middle" style="padding: 0.9rem 1rem;">
+                                                        <span class="text-muted">@cs.NuocCu → <strong style="color: #111827;">@cs.NuocMoi</strong></span>
+                                                        <span class="status-badge-available ml-2">@soNuoc Khối</span>
+                                                    </td>
+                                                    <td class="text-right align-middle" style="padding: 0.9rem 1.25rem;">
+                                                        @if (dsAnh.Length > 0)
+                                                        {
+                                                            <button type="button" class="btn btn-secondary btn-sm py-1 px-3"
+                                                                    style="color: #059669 !important; border-color: #A7F3D0 !important; background-color: #ECFDF5 !important;"
+                                                                    data-toggle="modal" data-target="#@modalId">
+                                                                <i class="fas fa-images mr-1"></i>Phóng to (@dsAnh.Length ảnh)
+                                                            </button>
+
+                                                            <div class="modal fade text-left" id="@modalId" tabindex="-1" role="dialog" aria-hidden="true">
+                                                                <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+                                                                    <div class="modal-content" style="border-radius: 2px;">
+                                                                        <div class="modal-header">
+                                                                            <h5 class="modal-title font-weight-bold" style="color: #111827;">
+                                                                                Ảnh chụp đồng hồ Tháng @(cs.Thang?.ToString("D2"))/@cs.Nam — Điện: @soDien kWh | Nước: @soNuoc Khối
+                                                                            </h5>
+                                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                                <span aria-hidden="true">&times;</span>
+                                                                            </button>
+                                                                        </div>
+                                                                        <div class="modal-body" style="background-color: #F9FAFB;">
+                                                                            <div class="row">
+                                                                                @for (int i = 0; i < dsAnh.Length; i++)
+                                                                                {
+                                                                                    <div class="@(dsAnh.Length == 1 ? "col-12" : "col-md-6") mb-3">
+                                                                                        <div class="p-2 bg-white" style="border: 1px solid #E5E7EB;">
+                                                                                            <div class="font-weight-bold mb-2">Ảnh đồng hồ #@(i + 1)</div>
+                                                                                            <img src="@dsAnh[i]" class="img-fluid w-100" style="max-height: 500px; object-fit: contain; background: #111827;" />
+                                                                                        </div>
+                                                                                    </div>
+                                                                                }
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted small">Chưa đính kèm ảnh</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- TAB 3: DANH SÁCH THÀNH VIÊN CÙNG PHÒNG -->
+                        <div class="tab-pane fade" id="tabThanhVien" role="tabpanel">
+                            <div class="table-responsive">
+                                <table class="table mb-0" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th style="padding: 0.85rem 1.25rem;">Họ và tên thành viên</th>
+                                            <th style="padding: 0.85rem 1rem;">Số CCCD / Định danh</th>
+                                            <th style="padding: 0.85rem 1rem;">Số điện thoại</th>
+                                            <th class="text-right" style="padding: 0.85rem 1.25rem;">Tình trạng tạm trú</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var k in Model.KhachOs)
+                                        {
+                                            <tr>
+                                                <td class="font-weight-bold align-middle" style="padding: 0.9rem 1.25rem; color: #111827;">
+                                                    <i class="fas fa-user mr-2 text-muted"></i>@k.HoTen
+                                                </td>
+                                                <td class="align-middle" style="padding: 0.9rem 1rem;">
+                                                    <span class="status-badge-occupied" style="font-family: monospace; letter-spacing: 0.04em;">@k.Cccd</span>
+                                                </td>
+                                                <td class="align-middle font-weight-bold" style="padding: 0.9rem 1rem; color: #374151;">
+                                                    @(k.SoDienThoai ?? "—")
+                                                </td>
+                                                <td class="text-right align-middle" style="padding: 0.9rem 1.25rem;">
+                                                    <span class="@(k.DaDangKyTamTru == true ? "status-badge-available" : "status-badge-maintenance")">
+                                                        @(k.DaDangKyTamTru == true ? "✓ Đã đăng ký tạm trú" : "Chờ đăng ký")
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CỘT PHẢI (4 PHẦN): BẢNG TIN NHÀ TRỌ & YÊU CẦU SỬA CHỮA BẢO TRÌ -->
+        <div class="col-xl-4 col-lg-4 mb-4">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-bullhorn mr-2" style="color: #059669;"></i>Bảng tin nhà trọ</span>
+                    <span class="badge-editorial-mint">Mới nhất</span>
+                </div>
+                <div class="card-body py-2 px-3">
+                    @if (!bangTin.Any())
+                    {
+                        <div class="text-center py-3 text-muted small">
+                            Hiện không có thông báo mới nào từ Chủ trọ.
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var tb in bangTin.Take(3))
+                        {
+                            <div class="py-2" style="border-bottom: 1px solid #F3F4F6;">
+                                <div class="font-weight-bold mb-1" style="color: #111827; font-size: 0.9rem;">@tb.TieuDe</div>
+                                <div class="small text-muted mb-1" style="white-space: pre-line;">@tb.NoiDung</div>
+                                <small class="text-muted"><i class="far fa-clock mr-1"></i>@(tb.NgayTao?.ToString("dd/MM/yyyy HH:mm"))</small>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-wrench mr-2" style="color: #059669;"></i>Yêu cầu sửa chữa & Bảo trì</span>
+                    <button type="button" class="btn btn-secondary btn-sm py-1 px-2" data-toggle="modal" data-target="#modalBaoSuCo">
+                        + Báo mới
+                    </button>
+                </div>
+                <div class="card-body py-2 px-3">
+                    @if (!danhSachSuCo.Any())
+                    {
+                        <div class="text-center py-4 text-muted small">Phòng của bạn chưa có yêu cầu bảo trì nào.</div>
+                    }
+                    else
+                    {
+                        @foreach (var sc in danhSachSuCo.Take(4))
+                        {
+                            string badge = sc.TrangThai switch
+                            {
+                                "Đã hoàn thành" => "status-badge-available",
+                                "Đang sửa" => "status-badge-maintenance",
+                                _ => "status-badge-occupied"
+                            };
+                            <div class="py-2 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid #F3F4F6;">
+                                <div class="pr-2">
+                                    <div class="font-weight-bold" style="color: #111827; font-size: 0.875rem;">@sc.MoTa</div>
+                                    <small class="text-muted">Mã #@sc.MaSuCo • @(sc.NgayTao?.ToString("dd/MM/yyyy"))</small>
+                                </div>
+                                <span class="@badge" style="white-space: nowrap;">@sc.TrangThai</span>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GỬI BÁO CÁO SỰ CỐ HỎNG HÓC -->
+    <div class="modal fade" id="modalBaoSuCo" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content" style="border-radius: 2px;">
+                <div class="modal-header">
+                    <h5 class="modal-title font-weight-bold" style="color: #111827;">
+                        <i class="fas fa-tools mr-2" style="color: #059669;"></i>Gửi báo cáo sự cố — @(Model.MaPhongNavigation?.TenPhong ?? Model.MaPhong)
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form asp-action="BaoCaoSuCo" method="post">
+                    <input type="hidden" name="maPhong" value="@Model.MaPhong" />
+                    <div class="modal-body">
+                        <div class="form-group mb-0">
+                            <label class="editorial-label">Mô tả chi tiết tình trạng hỏng hóc *</label>
+                            <textarea name="moTa" rows="4" class="form-control"
+                                  placeholder="VD: Vòi nước bồn rửa bị rò rỉ, bóng đèn ban công bị cháy..." required></textarea>
+                            <small class="text-muted d-block mt-2">
+                                Yêu cầu của bạn sẽ được đẩy trực tiếp lên Trung tâm điều hành của Chủ trọ với trạng thái <strong>Chờ xử lý</strong>.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary btn-editorial-cta">Gửi yêu cầu ngay</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}

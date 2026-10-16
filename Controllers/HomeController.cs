@@ -3,9 +3,10 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaTroBinhMinh.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace QuanLyNhaTroBinhMinh.Controllers;
-
+[Authorize(Roles = "VT_ADMIN")]
 public class HomeController : Controller
 {
     private readonly QuanLyNhaTroBinhMinhContext _context;
