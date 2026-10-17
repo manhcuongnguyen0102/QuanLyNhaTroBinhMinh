@@ -1,6 +1,6 @@
 ﻿@{
     Layout = null;
-    ViewData["Title"] = "Đăng nhập hệ thống";
+    ViewData["Title"] = "Đăng nhập — Nhà trọ Bình Minh";
 }
 
 <!DOCTYPE html>
@@ -8,74 +8,400 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Đăng nhập — Quản lý Nhà trọ Bình Minh</title>
+    <title>Đăng nhập — Hệ thống Quản lý Nhà trọ Bình Minh</title>
+    
+    <!-- FontAwesome Icons -->
     <link href="~/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="~/css/sb-admin-2.min.css" rel="stylesheet">
-    <link href="~/css/editorial-minimalist.css" rel="stylesheet" asp-append-version="true">
+
+    <!-- BỘ FONT CHUẨN TIẾNG VIỆT 100% (Be Vietnam Pro + Playfair Display) - KHÔNG BAO GIỜ LỖI DẤU -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* NỀN CHIA ĐÔI 2 SẮC ĐỘ XÁM ẤM ĐÚNG CHUẨN MẪU DESIGN MERCEDES */
+        .luxury-page-wrapper {
+            min-height: 100vh;
+            width: 100%;
+            background: linear-gradient(90deg, #E2E4E1 0%, #E2E4E1 48%, #ECEEEB 48%, #ECEEEB 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        /* THẺ CHÍNH (BO GÓC MỀM 14PX & ĐỔ BÓNG SÂU SANG TRỌNG) */
+        .luxury-split-card {
+            width: 100%;
+            max-width: 920px;
+            min-height: 560px;
+            background-color: #FFFFFF;
+            border-radius: 14px;
+            box-shadow: 0 30px 60px -15px rgba(17, 24, 39, 0.22), 0 10px 25px -10px rgba(17, 24, 39, 0.1);
+            display: grid;
+            grid-template-columns: 46% 54%;
+            overflow: hidden;
+        }
+
+        /* ==========================================
+                   CỘT TRÁI: ARCHITECTURAL BRAND SHOWCASE
+                   ========================================== */
+        .luxury-left-panel {
+            position: relative;
+            /* Ảnh nền kiến trúc tòa nhà căn hộ hiện đại kèm lớp phủ Dark Charcoal */
+            background-image: linear-gradient(165deg, rgba(31, 41, 55, 0.86) 0%, rgba(17, 24, 39, 0.94) 100%), url('https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1000&q=80');
+            background-size: cover;
+            background-position: center;
+            color: #FFFFFF;
+            padding: 3.5rem 3rem 2.25rem 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            text-align: center;
+        }
+
+        .brand-center-group {
+            margin-top: auto;
+            margin-bottom: auto;
+            width: 100%;
+            max-width: 280px;
+        }
+
+        /* Biểu tượng vòng tròn trung tâm (Lấy cảm hứng từ vòng tròn logo mẫu) */
+        .brand-emblem-circle {
+            width: 82px;
+            height: 82px;
+            border: 2.5px solid rgba(255, 255, 255, 0.92);
+            border-radius: 50%;
+            margin: 0 auto 1.15rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+            .brand-emblem-circle i {
+                font-size: 2rem;
+                color: #FFFFFF;
+            }
+
+        /* Chữ "Bình Minh" dùng phông Serif sang trọng như chữ "Mercedes" */
+        .brand-serif-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 2.2rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: #FFFFFF;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Đường kẻ ngang mảnh tinh tế */
+        .brand-divider {
+            width: 100%;
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.22);
+            margin-bottom: 1.65rem;
+        }
+
+        /* Cụm chữ căn phải giống "Owners Questionnaire" */
+        .brand-portal-type {
+            text-align: right;
+            line-height: 1.3;
+        }
+
+            .brand-portal-type .thin-line {
+                display: block;
+                font-size: 1.35rem;
+                font-weight: 300;
+                color: rgba(255, 255, 255, 0.88);
+                letter-spacing: 0.01em;
+            }
+
+            .brand-portal-type .bold-line {
+                display: block;
+                font-size: 1.45rem;
+                font-weight: 700;
+                color: #FFFFFF;
+                letter-spacing: -0.01em;
+                margin-top: 2px;
+            }
+
+        /* Dòng liên hệ nhỏ ở đáy cột trái */
+        .left-Bottom-contact {
+            font-size: 0.78rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.65);
+            letter-spacing: 0.03em;
+        }
+
+        /* ==========================================
+                   CỘT PHẢI: MINIMALIST PILL FORM
+                   ========================================== */
+        .luxury-right-panel {
+            background-color: #FFFFFF;
+            padding: 3.5rem 4.25rem 2.25rem 4.25rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .form-center-wrapper {
+            margin-top: auto;
+            margin-bottom: auto;
+            width: 100%;
+            max-width: 340px;
+        }
+
+        .login-instruction {
+            font-size: 0.88rem;
+            line-height: 1.6;
+            color: #9CA3AF;
+            font-weight: 400;
+            margin-bottom: 2.1rem;
+        }
+
+        /* Ô nhập liệu bo tròn hình viên thuốc (Pill Input) chuẩn mẫu */
+        .pill-input-wrapper {
+            position: relative;
+            margin-bottom: 1.15rem;
+        }
+
+        .pill-input {
+            width: 100%;
+            height: 50px;
+            border-radius: 50px;
+            border: 1.5px solid #E5E7EB;
+            background-color: #FFFFFF;
+            padding: 0 2.85rem 0 1.5rem;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: #1F2937;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+            .pill-input::placeholder {
+                color: #9CA3AF;
+                font-weight: 500;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                font-size: 0.75rem;
+            }
+
+            .pill-input:focus {
+                border-color: #374151;
+                box-shadow: 0 6px 20px rgba(17, 24, 39, 0.07);
+            }
+
+        /* Icon nằm bên phải trong ô viên thuốc */
+        .pill-trailing-icon {
+            position: absolute;
+            top: 50%;
+            right: 18px;
+            transform: translateY(-50%);
+            color: #9CA3AF;
+            font-size: 0.9rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s ease;
+        }
+
+        .pill-input:focus + .pill-trailing-icon {
+            color: #111827;
+        }
+
+        /* Nút ĐĂNG NHẬP dáng viên thuốc nhỏ gọn có mũi tên */
+        .btn-pill-login {
+            margin-top: 1.1rem;
+            height: 46px;
+            padding: 0 2.1rem;
+            border-radius: 50px;
+            background-color: #059669; /* Xanh Ngọc Lục Bảo đồng bộ thương hiệu Bình Minh */
+            color: #FFFFFF;
+            border: none;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            box-shadow: 0 10px 20px -5px rgba(5, 150, 105, 0.4);
+            transition: all 0.2s ease;
+        }
+
+            .btn-pill-login:hover {
+                background-color: #047857;
+                transform: translateY(-1px);
+                box-shadow: 0 14px 24px -5px rgba(5, 150, 105, 0.5);
+            }
+
+        /* Hộp báo lỗi nhỏ gọn tinh tế */
+        .luxury-error-alert {
+            background-color: #FEF2F2;
+            border: 1px solid #FCA5A5;
+            color: #991B1B;
+            padding: 0.75rem 1.15rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1.35rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Dòng ghi chú tối giản ở đáy cột phải giống "Forgot your login? • Privacy Policy" */
+        .right-bottom-links {
+            font-size: 0.76rem;
+            color: #9CA3AF;
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+            .right-bottom-links span.dot {
+                color: #D1D5DB;
+            }
+
+        @@media (max-width: 768px) {
+            .luxury-split-card {
+                grid-template-columns: 1fr;
+                max-width: 440px;
+            }
+
+            .luxury-left-panel {
+                padding: 2.5rem 2rem;
+            }
+
+            .luxury-right-panel {
+                padding: 2.5rem 2rem;
+            }
+        }
+    </style>
 </head>
-<body style="background-color: #FAFAFA; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+<body>
 
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-xl-5 col-lg-6 col-md-8">
-                <div class="card" style="border: 1px solid #E5E7EB; border-top: 4px solid #059669; border-radius: 2px; box-shadow: none;">
-                    <div class="card-body p-5">
-                        <div class="mb-4">
-                            <span class="badge-editorial-mint mb-2 d-inline-block">HỆ THỐNG VẬN HÀNH LƯU TRÚ</span>
-                            <h1 class="editorial-title mb-1" style="font-size: 1.75rem;">Nhà trọ Bình Minh</h1>
-                            <p class="editorial-subtitle mb-0">Cổng đăng nhập dành cho Chủ cơ sở và Cư dân đại diện phòng.</p>
-                        </div>
+    <div class="luxury-page-wrapper">
+        <div class="luxury-split-card">
 
-                        @if (ViewBag.Loi != null)
-                        {
-                            <div class="alert-editorial-danger mb-4"
-                                 style="background-color: #FEF2F2; border: 1px solid #F87171; color: #991B1B; padding: 0.85rem 1rem; border-radius: 2px; font-weight: 600; font-size: 0.875rem;">
-                                <i class="fas fa-exclamation-triangle mr-2" style="color: #DC2626;"></i>@ViewBag.Loi
-                            </div>
-                        }
+            <!-- CỘT TRÁI: THIẾT KẾ THEO MẪU MERCEDES NHƯNG MANG BẢN SẮC NHÀ TRỌ BÌNH MINH -->
+            <div class="luxury-left-panel">
+                <div></div> <!-- Khoảng đệm cân bằng -->
 
-                        <form asp-controller="Account" asp-action="Login" method="post">
-                            <div class="form-group mb-4">
-                                <label class="editorial-label">Tên đăng nhập *</label>
-                                <input type="text" name="tenDangNhap" id="inputUser" class="form-control" placeholder="Nhập tên đăng nhập..." required autofocus />
-                            </div>
+                <div class="brand-center-group">
+                    <div class="brand-emblem-circle">
+                        <i class="fas fa-building"></i>
+                    </div>
 
-                            <div class="form-group mb-4">
-                                <label class="editorial-label">Mật khẩu *</label>
-                                <input type="password" name="matKhau" id="inputPass" class="form-control" placeholder="••••••••" required />
-                            </div>
+                    <h1 class="brand-serif-title">Bình Minh</h1>
 
-                            <button type="submit" class="btn btn-primary btn-editorial-cta btn-block py-2 mb-4" style="font-size: 0.95rem;">
-                                <i class="fas fa-sign-in-alt mr-2"></i>Đăng nhập vào hệ thống
-                            </button>
-                        </form>
+                    <div class="brand-divider"></div>
 
-                        <!-- Khung điền nhanh tài khoản Demo phục vụ kiểm thử & bảo vệ đồ án -->
-                        <div class="pt-3" style="border-top: 1px solid #E5E7EB;">
-                            <div class="small font-weight-bold text-muted mb-2">CHỌN NHANH TÀI KHOẢN KIỂM THỬ:</div>
-                            <div class="d-flex" style="gap: 0.5rem;">
-                                <button type="button" onclick="dienNhanh('admin', '123456')" class="btn btn-secondary btn-sm flex-fill py-2">
-                                    <i class="fas fa-user-shield mr-1" style="color: #059669;"></i>Chủ trọ (admin)
-                                </button>
-                                <button type="button" onclick="dienNhanh('nguyenvana', '123456')" class="btn btn-secondary btn-sm flex-fill py-2">
-                                    <i class="fas fa-user mr-1" style="color: #059669;"></i>Khách thuê (nguyenvana)
-                                </button>
-                            </div>
-                            <small class="text-muted d-block mt-3 text-center">
-                                * Tài khoản khách thuê do Chủ trọ cấp trực tiếp khi ký hợp đồng thuê phòng.
-                            </small>
-                        </div>
+                    <div class="brand-portal-type">
+                        <span class="thin-line">Hệ thống Quản lý</span>
+                        <span class="bold-line">Vận hành Lưu trú</span>
                     </div>
                 </div>
+
+                <div class="left-Bottom-contact">
+                    banquanly@nhatrobinhminh.vn
+                </div>
             </div>
+
+            <!-- CỘT PHẢI: BIỂU MẪU VIÊN THUỐC TỐI GIẢN (PILL FORM) -->
+            <div class="luxury-right-panel">
+                <div></div> <!-- Khoảng đệm cân bằng -->
+
+                <div class="form-center-wrapper">
+                    <p class="login-instruction">
+                        Vui lòng nhập tên đăng nhập và mật khẩu được cấp để truy cập hệ thống.
+                    </p>
+
+                    @if (ViewBag.Loi != null)
+                    {
+                        <div class="luxury-error-alert">
+                            <i class="fas fa-exclamation-circle" style="color: #DC2626;"></i>
+                            <span>@ViewBag.Loi</span>
+                        </div>
+                    }
+
+                    <form asp-controller="Account" asp-action="Login" method="post">
+                        <!-- Ô Tên đăng nhập dáng viên thuốc -->
+                        <div class="pill-input-wrapper">
+                            <input type="text" name="tenDangNhap" class="pill-input"
+                                   placeholder="TÊN ĐĂNG NHẬP" autocomplete="username" required autofocus />
+                            <span class="pill-trailing-icon" style="pointer-events: none;">
+                                <i class="far fa-check-circle"></i>
+                            </span>
+                        </div>
+
+                        <!-- Ô Mật khẩu dáng viên thuốc -->
+                        <div class="pill-input-wrapper">
+                            <input type="password" name="matKhau" id="inputPass" class="pill-input"
+                                   placeholder="MẬT KHẨU" autocomplete="current-password" required />
+                            <button type="button" class="pill-trailing-icon" onclick="togglePassword()" title="Ẩn / Hiện mật khẩu">
+                                <i class="far fa-eye" id="eyeIcon"></i>
+                            </button>
+                        </div>
+
+                        <!-- Nút Đăng nhập viên thuốc -->
+                        <button type="submit" class="btn-pill-login">
+                            <span>ĐĂNG NHẬP</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Ghi chú nhỏ gọn ở đáy giống mẫu tham khảo -->
+                <div class="right-bottom-links">
+                    
+                    <span class="muted-text">Nếu có vấn đề với tài khoản đăng nhập, hãy liên hệ chủ trọ</span>
+                </div>
+            </div>
+
         </div>
     </div>
 
     <script>
-        function dienNhanh(u, p) {
-            document.getElementById('inputUser').value = u;
-            document.getElementById('inputPass').value = p;
+        function togglePassword() {
+            const passInput = document.getElementById('inputPass');
+            const eyeIcon = document.getElementById('eyeIcon');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passInput.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
         }
     </script>
 </body>
