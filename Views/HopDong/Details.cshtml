@@ -128,7 +128,7 @@
         <div>
             <span style="font-size: 1.05rem; font-weight: 700; color: #111827;">Dịch vụ cố định đi kèm hợp đồng</span>
             <p class="text-muted mb-0 mt-1">
-                Điện (DV_DIEN) và Nước (DV_NUOC) tự động tính theo đồng hồ. Bấm vào các dịch vụ cố định bên dưới để Bật/Tắt cho hợp đồng này.
+                Số điện và nước sẽ tự động tính theo lượng sử dụng.Bấm vào các dịch vụ cố định bên dưới để Bật/Tắt cho hợp đồng này.
             </p>
         </div>
     </div>
@@ -183,7 +183,7 @@
                 @(daThanhLy ? $"Danh sách thành viên đã từng cư trú trong hợp đồng #{Model.MaHopDong}" : $"Danh sách thành viên đang cư trú trong hợp đồng #{Model.MaHopDong}")
             </span>
             <p class="text-muted mb-0 mt-1">
-                @(daThanhLy ? "Hồ sơ lưu trữ lịch sử nhân khẩu (Chỉ đọc — Không thể chỉnh sửa sau khi đã thanh lý)." : "Bấm trực tiếp vào trạng thái tạm trú để chuyển đổi nhanh (1-Click).")
+                @(daThanhLy ? "Hồ sơ lưu trữ lịch sử nhân khẩu ." : "")
             </p>
         </div>
         @if (!daThanhLy)

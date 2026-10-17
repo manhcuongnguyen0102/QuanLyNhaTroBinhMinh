@@ -1,4 +1,4 @@
-﻿@model QuanLyNhaTroBinhMinh.Models.PhongTro
+@model QuanLyNhaTroBinhMinh.Models.PhongTro
 
 @{
     ViewData["Title"] = "Chỉnh sửa phòng trọ";
@@ -9,7 +9,7 @@
     <div>
         <span class="badge-editorial-mint mb-2 d-inline-block">CẬP NHẬT HẠ TẦNG</span>
         <h1 class="editorial-title mb-1">Chỉnh sửa: @Model.TenPhong</h1>
-        <p class="editorial-subtitle mb-0">Điều chỉnh mức giá niêm yết, diện tích hoặc chuyển đổi trạng thái phòng.</p>
+        
     </div>
     <div class="mt-4 mt-sm-0">
         <a asp-action="Index" class="btn btn-secondary">
@@ -57,12 +57,24 @@
                     </div>
 
                     <div class="form-group mb-5">
-                        <label asp-for="TrangThai" class="editorial-label">Trạng thái vận hành</label>
-                        <select asp-for="TrangThai" class="form-control">
-                            <option value="Trống">Trống (Sẵn sàng đón khách)</option>
-                            <option value="Đang thuê">Đang thuê</option>
-                            <option value="Bảo trì">Bảo trì / Sửa chữa</option>
-                        </select>
+                        <label asp-for="TrangThai" class="editorial-label">Trạng thái phòng *</label>
+                        @if (ViewBag.DangCoHopDongHieuLuc == true)
+                        {
+                            <!-- Khóa cứng không cho bấm đổi trạng thái nếu phòng đang có Hợp đồng Hiệu lực -->
+                            <input type="hidden" asp-for="TrangThai" value="Đang thuê" />
+                            <input type="text" class="form-control font-weight-bold" value="Đang thuê" readonly
+                                   style="background-color: #ECFDF5 !important; color: #059669 !important; border-color: #A7F3D0 !important;" />
+                            <small class="text-muted d-block mt-1">
+                                <i class="fas fa-lock mr-1" style="color: #059669;"></i>Trạng thái được khóa tự động. Muốn trả phòng về "Trống", vui lòng vào mục <strong>Hợp đồng thuê → Thanh lý</strong>.
+                            </small>
+                        }
+                        else
+                        {
+                            <select asp-for="TrangThai" class="form-control">
+                                <option value="Trống">Trống (Sẵn sàng đón khách)</option>
+                                <option value="Đang sửa">Đang sửa (Tạm ngưng đón khách)</option>
+                            </select>
+                        }
                         <span asp-validation-for="TrangThai" class="text-danger small"></span>
                     </div>
 

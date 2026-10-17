@@ -87,6 +87,7 @@
                             }
                             @foreach (var ct in Model.ChiTietHoaDons)
                             {
+
                                 string dienGiai = ct.MaDichVuNavigation?.DonViTinh ?? "";
                                 if (ct.MaDichVu?.Trim() == "DV_DIEN" && chiSo != null)
                                 {
@@ -105,6 +106,23 @@
                                     <td class="text-right">@ct.DonGia.ToString("N0")đ</td>
                                     <td class="text-center">@ct.SoLuong</td>
                                     <td class="text-right font-weight-bold" style="color: #111827;">@ct.ThanhTien.ToString("N0")đ</td>
+                                </tr>
+                            }
+
+                            @{
+                                var dsSuCoCoPhi = ViewBag.DanhSachSuCoCoPhi as List<QuanLyNhaTroBinhMinh.Models.SuCo> ?? new();
+                            }
+                            @foreach (var sc in dsSuCoCoPhi)
+                            {
+                                decimal phiSua = sc.ChiPhiSua ?? 0;
+                                <tr style="white-space: nowrap; background-color: #FFFBEB;">
+                                    <td class="font-weight-bold" style="color: #B45309;">
+                                        @(stt++). Phí sửa chữa & Bảo trì sự cố (#@sc.MaSuCo)
+                                    </td>
+                                    <td class="text-muted" style="white-space: normal;">@sc.MoTa</td>
+                                    <td class="text-right">@phiSua.ToString("N0")đ</td>
+                                    <td class="text-center">1</td>
+                                    <td class="text-right font-weight-bold" style="color: #B45309;">@phiSua.ToString("N0")đ</td>
                                 </tr>
                             }
                         </tbody>

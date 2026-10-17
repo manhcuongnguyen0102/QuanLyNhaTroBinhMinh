@@ -22,11 +22,9 @@
 <!-- TIÊU ĐỀ TRUNG TÂM ĐIỀU HÀNH & CỤM LỐI TẮT TÁC VỤ -->
 <div class="d-lg-flex align-items-end justify-content-between mb-4 pb-3" style="border-bottom: 1px solid #E5E7EB;">
     <div>
-        <span class="badge-editorial-mint mb-2 d-inline-block">COMMAND CENTER — NHÀ TRỌ BÌNH MINH</span>
+        <span class="badge-editorial-mint mb-2 d-inline-block">TRUNG TÂM ĐIỀU KHIỂN</span>
         <h1 class="editorial-title mb-1">Bàn làm việc tổng quan</h1>
-        <p class="editorial-subtitle mb-0">
-            Kỳ vận hành: <strong style="color: #111827;">Tháng @DateTime.Today.ToString("MM/yyyy")</strong> — Giám sát mặt bằng phòng, tiến độ thu ngân và cảnh báo vận hành.
-        </p>
+        
     </div>
 
     <div class="mt-4 mt-lg-0 d-flex flex-wrap" style="gap: 0.5rem;">
@@ -42,7 +40,7 @@
     </div>
 </div>
 
-<!-- ĐIỂM NHẤN 5: DẢI CẢNH BÁO HÀNH ĐỘNG KHẨN (ACTIONABLE ALERTS) -->
+
 @if (coCanhBaoKhan)
 {
     <div class="p-3 mb-4" style="background-color: #FEF2F2; border: 1px solid #F87171; border-radius: 2px;">
@@ -150,8 +148,8 @@
 <!-- ĐIỂM NHẤN 2: THANH TIẾN ĐỘ VẬN HÀNH THÁNG HIỆN TẠI (3 BƯỚC KHÉP KÍN) -->
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <span>Quy trình khép kín kỳ Tháng @DateTime.Today.ToString("MM/yyyy") (3 bước vận hành)</span>
-        <span class="badge-editorial-mint">Tự động đồng bộ theo thời gian thực</span>
+        <span>Quy trình Tháng @DateTime.Today.ToString("MM/yyyy")</span>
+        
     </div>
     <div class="card-body py-3">
         <div class="row">
@@ -409,7 +407,7 @@
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Nhật ký dòng tiền vừa thu</span>
-                <span class="badge-editorial-mint">Live Feed</span>
+                
             </div>
             <div class="card-body py-2 px-3">
                 @if (!dsGiaoDichMoi.Any())

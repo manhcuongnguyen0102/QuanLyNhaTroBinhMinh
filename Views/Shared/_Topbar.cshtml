@@ -8,7 +8,7 @@
     <!-- Định danh khu trọ tối giản bên trái -->
     <div class="d-none d-sm-inline-block">
         <span class="badge-editorial-mint mr-2">HỆ THỐNG VẬN HÀNH</span>
-        <span class="text-muted">Cơ sở: Nhà trọ Bình Minh</span>
+        <span class="text-muted">Nhà trọ Bình Minh</span>
     </div>
 
    
@@ -43,5 +43,63 @@
             </form>
         </li>
     </ul>
+    <div class="modal fade" id="modalDoiMatKhauAdmin" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content" style="border-radius: 2px; border: 1px solid #E5E7EB;">
+                <div class="modal-header" style="border-bottom: 1px solid #E5E7EB;">
+                    <h5 class="modal-title font-weight-bold" style="color: #111827;">
+                        <i class="fas fa-user-shield mr-2" style="color: #059669;"></i>Đổi mật khẩu Chủ trọ
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form asp-controller="Account" asp-action="DoiMatKhau" method="post">
+                    <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                    <div class="modal-body">
+                        <div class="form-group mb-3">
+                            <label class="editorial-label">Mật khẩu hiện tại *</label>
+                            <input type="password" name="matKhauCu" class="form-control" required />
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="editorial-label">Mật khẩu mới *</label>
+                            <input type="password" name="matKhauMoi" class="form-control" minlength="4" required />
+                        </div>
+                        <div class="form-group mb-0">
+                            <label class="editorial-label">Xác nhận mật khẩu mới *</label>
+                            <input type="password" name="xacNhanMatKhau" class="form-control" minlength="4" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #E5E7EB;">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary btn-editorial-cta">Lưu mật khẩu mới</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
 </nav>
+<style>
+    /* ÉP MÀU ĐỎ ĐẬM SẮC NÉT CHO MỌI THÔNG BÁO LỖI VALIDATION TRÊN TOÀN HỆ THỐNG */
+    span.field-validation-error,
+    span.field-validation-error *,
+    .text-danger,
+    .validation-summary-errors,
+    .validation-summary-errors ul li {
+        color: #DC2626 !important; /* Đỏ tươi nổi bật */
+        font-weight: 700 !important;
+        font-size: 0.85rem !important;
+        opacity: 1 !important;
+    }
+
+    /* Đóng khung nền hồng nhạt cho dòng lỗi dưới ô Input để dễ nhìn gấp đôi */
+    span.field-validation-error {
+        display: block !important;
+        margin-top: 6px !important;
+        padding: 6px 10px !important;
+        background-color: #FEF2F2 !important;
+        border-left: 3px solid #DC2626 !important;
+        border-radius: 2px !important;
+    }
+</style>

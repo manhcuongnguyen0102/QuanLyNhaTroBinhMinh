@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaTroBinhMinh.Models;
-using Microsoft.AspNetCore.Authorization;
+
 namespace QuanLyNhaTroBinhMinh.Controllers;
+
 [Authorize(Roles = "VT_ADMIN")]
 public class SuCoController : Controller
 {
@@ -14,7 +16,7 @@ public class SuCoController : Controller
         _context = context;
     }
 
-    // 1. DANH SÁCH SỰ CỐ & BẢO TRÌ (CÓ TAB THÙNG RÁC & KHÔI PHỤC 1-CLICK)
+    // 1. DANH SÁCH SỰ CỐ & BẢO TRÌ
     [HttpGet]
     public async Task<IActionResult> Index(string? trangThai, string? maPhong, string? tuKhoa)
     {
@@ -68,7 +70,6 @@ public class SuCoController : Controller
         ViewBag.MaPhongHienTai = maPhong;
         ViewBag.TuKhoaHienTai = tuKhoa;
 
-        // Ưu tiên đưa các sự cố "Chờ xử lý" và "Đang sửa" lên trên, "Đã hoàn thành" xuống dưới
         var danhSach = await query
             .OrderBy(s => s.TrangThai == "Đã hoàn thành" ? 1 : 0)
             .ThenByDescending(s => s.NgayTao)
@@ -117,7 +118,6 @@ public class SuCoController : Controller
             suCo.DaXoa = false;
             _context.Add(suCo);
 
-            // Tùy chọn đồng bộ trạng thái phòng sang "Đang sửa" nếu là phòng trống cần bảo trì lớn
             if (chuyenPhongSangDangSua && !string.IsNullOrWhiteSpace(suCo.MaPhong))
             {
                 var phong = await _context.PhongTros.FindAsync(suCo.MaPhong);
@@ -129,6 +129,10 @@ public class SuCoController : Controller
             }
 
             await _context.SaveChangesAsync();
+
+            // Tự động đồng bộ chi phí sửa chữa vào Hóa đơn tháng của phòng (nếu có)
+            await DongBoChiPhiSuaVaoHoaDonAsync(suCo.MaPhong, suCo.NgayTao);
+
             TempData["ThongBao"] = $"Đã ghi nhận phiếu báo cáo sự cố #{suCo.MaSuCo} tại phòng {suCo.MaPhong ?? "Khu vực chung"}.";
             return RedirectToAction(nameof(Index));
         }
@@ -150,7 +154,7 @@ public class SuCoController : Controller
         return View(suCo);
     }
 
-    // 5. XỬ LÝ CẬP NHẬT SỰ CỐ & TỰ ĐỘNG MỞ LẠI PHÒNG KHI BẢO TRÌ XONG (POST)
+    // 5. XỬ LÝ CẬP NHẬT SỰ CỐ & TỰ ĐỘNG CỘNG CHI PHÍ VÀO HÓA ĐƠN PHÒNG (POST)
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(string id, [Bind("MaSuCo,MaPhong,MaNguoiDungBao,MoTa,TrangThai,ChiPhiSua,NgayTao")] SuCo suCo)
@@ -161,10 +165,10 @@ public class SuCoController : Controller
 
         if (ModelState.IsValid)
         {
+            suCo.NgayTao ??= DateTime.Now;
             suCo.DaXoa = false;
             _context.Update(suCo);
 
-            // Nếu sự cố chuyển sang "Đã hoàn thành", kiểm tra nếu phòng đó đang ở trạng thái "Đang sửa" và hết sự cố mở thì trả về "Trống"
             if (suCo.TrangThai == "Đã hoàn thành" && !string.IsNullOrWhiteSpace(suCo.MaPhong))
             {
                 bool conSuCoKhac = await _context.SuCos
@@ -182,7 +186,11 @@ public class SuCoController : Controller
             }
 
             await _context.SaveChangesAsync();
-            TempData["ThongBao"] = $"Đã cập nhật sự cố #{suCo.MaSuCo} sang trạng thái '{suCo.TrangThai}' (Chi phí: {(suCo.ChiPhiSua ?? 0):N0}đ).";
+
+            // TỰ ĐỘNG CẬP NHẬT TỔNG TIỀN HÓA ĐƠN CỦA PHÒNG TRONG THÁNG TƯƠNG ỨNG
+            string thongBaoHoaDon = await DongBoChiPhiSuaVaoHoaDonAsync(suCo.MaPhong, suCo.NgayTao);
+
+            TempData["ThongBao"] = $"Đã cập nhật sự cố #{suCo.MaSuCo} sang '{suCo.TrangThai}' (Chi phí: {(suCo.ChiPhiSua ?? 0):N0}đ). {thongBaoHoaDon}";
             return RedirectToAction(nameof(Index));
         }
 
@@ -190,7 +198,7 @@ public class SuCoController : Controller
         return View(suCo);
     }
 
-    // 6. XÓA MỀM & KHÔI PHỤC SỰ CỐ
+    // 6. XÓA MỀM & KHÔI PHỤC SỰ CỐ (ĐỒNG BỘ LẠI TỔNG TIỀN HÓA ĐƠN)
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(string id)
@@ -198,9 +206,14 @@ public class SuCoController : Controller
         var suCo = await _context.SuCos.FindAsync(id);
         if (suCo != null)
         {
+            string? maPhong = suCo.MaPhong;
+            DateTime? ngayTao = suCo.NgayTao;
+
             _context.SuCos.Remove(suCo);
             await _context.SaveChangesAsync();
-            TempData["ThongBao"] = $"Đã ẩn phiếu sự cố #{id} vào danh sách lưu trữ.";
+
+            await DongBoChiPhiSuaVaoHoaDonAsync(maPhong, ngayTao);
+            TempData["ThongBao"] = $"Đã ẩn phiếu sự cố #{id} và cập nhật lại hóa đơn liên quan.";
         }
         return RedirectToAction(nameof(Index));
     }
@@ -215,21 +228,82 @@ public class SuCoController : Controller
             suCo.DaXoa = false;
             _context.SuCos.Update(suCo);
             await _context.SaveChangesAsync();
-            TempData["ThongBao"] = $"Đã khôi phục phiếu sự cố #{id} hoạt động trở lại.";
+
+            await DongBoChiPhiSuaVaoHoaDonAsync(suCo.MaPhong, suCo.NgayTao);
+            TempData["ThongBao"] = $"Đã khôi phục phiếu sự cố #{id} và đồng bộ lại hóa đơn.";
         }
         return RedirectToAction(nameof(Index));
     }
 
+    // HÀM TỰ ĐỘNG ĐỒNG BỘ CHI PHÍ SỬA CHỮA VÀO HÓA ĐƠN CỦA PHÒNG
+    private async Task<string> DongBoChiPhiSuaVaoHoaDonAsync(string? maPhong, DateTime? ngayTaoSuCo)
+    {
+        if (string.IsNullOrWhiteSpace(maPhong)) return string.Empty;
+
+        int thang = (ngayTaoSuCo ?? DateTime.Now).Month;
+        int nam = (ngayTaoSuCo ?? DateTime.Now).Year;
+
+        // Tìm hóa đơn của phòng này trong kỳ Tháng/Năm xảy ra sự cố (hoặc hóa đơn mới nhất chưa thanh toán xong)
+        var hoaDon = await _context.HoaDons
+            .Include(h => h.MaHopDongNavigation)
+                .ThenInclude(hd => hd != null ? hd.MaPhongNavigation : null)
+            .Include(h => h.ChiTietHoaDons)
+            .Include(h => h.ThanhToans)
+            .Where(h => h.MaHopDongNavigation != null && h.MaHopDongNavigation.MaPhong == maPhong)
+            .OrderByDescending(h => h.Thang == thang && h.Nam == nam ? 1 : 0)
+            .ThenByDescending(h => h.Nam)
+            .ThenByDescending(h => h.Thang)
+            .FirstOrDefaultAsync();
+
+        if (hoaDon == null) return "(Chưa có hóa đơn kỳ này, chi phí sẽ tự động cộng khi xuất hóa đơn).";
+
+        int kyThang = hoaDon.Thang ?? thang;
+        int kyNam = hoaDon.Nam ?? nam;
+
+        // Tính tổng chi phí của các sự cố ĐÃ HOÀN THÀNH hoặc ĐANG SỬA có ChiPhiSua > 0 của phòng trong kỳ hóa đơn đó
+        decimal tongChiPhiSuCoKyNay = await _context.SuCos
+            .Where(s => s.MaPhong == maPhong
+                     && s.ChiPhiSua > 0
+                     && s.NgayTao.HasValue
+                     && s.NgayTao.Value.Month == kyThang
+                     && s.NgayTao.Value.Year == kyNam)
+            .SumAsync(s => s.ChiPhiSua ?? 0);
+
+        decimal giaPhongCung = hoaDon.MaHopDongNavigation?.MaPhongNavigation?.GiaThueCung ?? 0;
+        decimal tongTienDichVu = hoaDon.ChiTietHoaDons.Sum(ct => ct.ThanhTien);
+
+        // Cập nhật lại Tổng tiền Hóa đơn = Tiền phòng cứng + Tiền dịch vụ + Chi phí sửa chữa sự cố
+        hoaDon.TongTien = giaPhongCung + tongTienDichVu + tongChiPhiSuCoKyNay;
+
+        // Kiểm tra lại trạng thái thanh toán của hóa đơn sau khi cộng thêm phí sửa chữa
+        decimal daTra = hoaDon.ThanhToans.Sum(t => t.SoTienTra);
+        if (daTra == 0)
+        {
+            hoaDon.TrangThai = "Chưa thanh toán";
+        }
+        else if (daTra < hoaDon.TongTien)
+        {
+            hoaDon.TrangThai = "Thanh toán một phần";
+        }
+        else
+        {
+            hoaDon.TrangThai = "Đã thanh toán";
+        }
+
+        _context.HoaDons.Update(hoaDon);
+        await _context.SaveChangesAsync();
+
+        return $"Đã tự động cộng {tongChiPhiSuCoKyNay:N0}đ phí sửa chữa vào Hóa đơn #{hoaDon.MaHoaDon} (Tổng mới: {hoaDon.TongTien:N0}đ)!";
+    }
+
     private void ValidateSuCoConstraints(SuCo suCo)
     {
-        // Khớp CHECK (TrangThai IN (N'Chờ xử lý', N'Đang sửa', N'Đã hoàn thành'))
         var validStates = new[] { "Chờ xử lý", "Đang sửa", "Đã hoàn thành" };
         if (string.IsNullOrWhiteSpace(suCo.TrangThai) || !validStates.Contains(suCo.TrangThai))
         {
             ModelState.AddModelError("TrangThai", "Trạng thái sự cố chỉ nhận: 'Chờ xử lý', 'Đang sửa' hoặc 'Đã hoàn thành'.");
         }
 
-        // Khớp CK__SuCo__ChiPhiSua__09A971A2: [ChiPhiSua] >= (0)
         if (suCo.ChiPhiSua.HasValue && suCo.ChiPhiSua.Value < 0)
         {
             ModelState.AddModelError("ChiPhiSua", "Chi phí sửa chữa không được nhỏ hơn 0đ.");

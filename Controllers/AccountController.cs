@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -140,16 +140,11 @@ public class AccountController : Controller
 
         if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
             return Redirect(returnUrl);
-        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
-            return Redirect(returnUrl);
 
         // Nếu là Chủ trọ thì về Home/Index, nếu là Khách thuê thì về KhachThue/Index
         if (User.FindFirstValue(ClaimTypes.Role) == "VT_ADMIN")
             return RedirectToAction("Index", "Home");
 
         return RedirectToAction("Index", "KhachThue");
-
-
-
     }
 }

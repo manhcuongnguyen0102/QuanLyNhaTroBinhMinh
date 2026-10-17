@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaTroBinhMinh.Models;
@@ -98,6 +98,19 @@ public class HoaDonController : Controller
                 .FirstOrDefaultAsync(c => c.MaPhong == hoaDon.MaHopDongNavigation.MaPhong
                                        && c.Thang == hoaDon.Thang
                                        && c.Nam == hoaDon.Nam);
+        }
+        // Lấy danh sách các sự cố có phát sinh chi phí sửa chữa của phòng trong kỳ hóa đơn này
+        if (hoaDon.MaHopDongNavigation?.MaPhong != null)
+        {
+            string maP = hoaDon.MaHopDongNavigation.MaPhong;
+            ViewBag.DanhSachSuCoCoPhi = await _context.SuCos
+                .AsNoTracking()
+                .Where(s => s.MaPhong == maP
+                         && s.ChiPhiSua > 0
+                         && s.NgayTao.HasValue
+                         && s.NgayTao.Value.Month == hoaDon.Thang
+                         && s.NgayTao.Value.Year == hoaDon.Nam)
+                .ToListAsync();
         }
 
         return View(hoaDon);
@@ -262,6 +275,7 @@ public class HoaDonController : Controller
                 NgayTao = DateTime.Now,
                 DaXoa = false
             };
+
 
             _context.HoaDons.Add(hoaDonMoi);
             if (danhSachChiTiet.Any())

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaTroBinhMinh.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -87,16 +87,14 @@ public class PhongTroController : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(string id)
     {
-        if (string.IsNullOrWhiteSpace(id))
-        {
-            return NotFound();
-        }
+        if (string.IsNullOrWhiteSpace(id)) return NotFound();
 
         var phongTro = await _context.PhongTros.FindAsync(id);
-        if (phongTro == null)
-        {
-            return NotFound();
-        }
+        if (phongTro == null) return NotFound();
+
+        // Kiểm tra xem phòng này có đang vướng Hợp đồng "Hiệu lực" không để khóa Dropdown ngoài View
+        ViewBag.DangCoHopDongHieuLuc = await _context.HopDongs
+            .AnyAsync(h => h.MaPhong == id && h.TrangThai == "Hiệu lực");
 
         return View(phongTro);
     }
@@ -106,37 +104,38 @@ public class PhongTroController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(string id, [Bind("MaPhong,TenPhong,DienTich,GiaThueCung,TrangThai")] PhongTro phongTro)
     {
-        if (id != phongTro.MaPhong)
-        {
-            return NotFound();
-        }
-        // Đặt trong hàm Edit [HttpPost] của PhongTroController:
+        if (id != phongTro.MaPhong) return NotFound();
+
         bool coHopDongHieuLuc = await _context.HopDongs
             .AnyAsync(h => h.MaPhong == phongTro.MaPhong && h.TrangThai == "Hiệu lực");
 
+        ViewBag.DangCoHopDongHieuLuc = coHopDongHieuLuc;
+
+        // CHỐT CHẶN BẮT BUỘC PHẢI ĐẶT TRƯỚC dòng if (ModelState.IsValid)
         if (coHopDongHieuLuc && phongTro.TrangThai != "Đang thuê")
         {
-            ModelState.AddModelError("TrangThai", $"Phòng {phongTro.MaPhong} đang có Hợp đồng đang Hiệu lực! Không thể chuyển thủ công sang '{phongTro.TrangThai}'. Vui lòng thực hiện Thanh lý hợp đồng nếu khách trả phòng.");
+            ModelState.AddModelError("TrangThai",
+                $"Phòng {phongTro.MaPhong} đang có Hợp đồng đang Hiệu lực! Không thể chuyển thủ công sang '{phongTro.TrangThai}'. Vui lòng thực hiện Thanh lý hợp đồng nếu khách trả phòng.");
         }
+
+        if (phongTro.GiaThueCung <= 0)
+        {
+            ModelState.AddModelError("GiaThueCung", "Giá thuê cứng phải lớn hơn 0đ.");
+        }
+
+        if (phongTro.DienTich.HasValue && phongTro.DienTich.Value <= 0)
+        {
+            ModelState.AddModelError("DienTich", "Diện tích phòng phải lớn hơn 0m².");
+        }
+
+        // CHỈ KHI KHÔNG CÓ BẤT KỲ LỖI NÀO THÌ MỚI LƯU XUỐNG DATABASE
         if (ModelState.IsValid)
         {
-            try
-            {
-                _context.Update(phongTro);
-                await _context.SaveChangesAsync();
-                TempData["ThongBao"] = $"Đã cập nhật thông tin phòng {phongTro.TenPhong}.";
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await _context.PhongTros.AnyAsync(e => e.MaPhong == phongTro.MaPhong))
-                {
-                    return NotFound();
-                }
-                throw;
-            }
+            _context.Update(phongTro);
+            await _context.SaveChangesAsync();
+            TempData["ThongBao"] = $"Đã cập nhật thông tin phòng {phongTro.MaPhong} ({phongTro.TenPhong}) thành công.";
             return RedirectToAction(nameof(Index));
         }
-        
 
         return View(phongTro);
     }
@@ -146,7 +145,6 @@ public class PhongTroController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(string id)
     {
-        // Đặt ở đầu hàm Delete [HttpPost] của PhongTroController:
         bool dangCoKhachThue = await _context.HopDongs
             .AnyAsync(h => h.MaPhong == id && h.TrangThai == "Hiệu lực");
 
@@ -175,7 +173,6 @@ public class PhongTroController : Controller
             TempData["Loi"] = $"Không thể xóa cứng phòng {phongTro.TenPhong} vì đã có dữ liệu Hợp đồng/Điện nước/Sự cố liên kết.";
             return RedirectToAction(nameof(Index));
         }
-        // Đặt ở đầu hàm Delete [HttpPost] của PhongTroController:
       
         _context.PhongTros.Remove(phongTro);
         await _context.SaveChangesAsync();

@@ -195,7 +195,7 @@ public class ChiSoDienNuocController : Controller
                 .AnyAsync(h => h.MaHopDongNavigation != null
                             && h.MaHopDongNavigation.MaPhong == chiSo.MaPhong
                             && h.Thang == chiSo.Thang
-                            && h.Nam == chiSo.Nam
+                           && h.Nam == chiSo.Nam
                             && h.TrangThai != "Chưa thanh toán");
 
             if (daCoHoaDonThuTien)

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaTroBinhMinh.Models;
@@ -409,7 +409,7 @@ public class HopDongController : Controller
                 u.MaNguoiDung,
                 HienThi = $"{u.TenDangNhap} (Mã: {u.MaNguoiDung})"
             }).ToListAsync();
-       
+
         ViewBag.DanhSachPhong = new SelectList(rooms, "MaPhong", "HienThi", selectedPhong);
         ViewBag.DanhSachNguoiDung = new SelectList(users, "MaNguoiDung", "HienThi", selectedNguoiDung);
     }

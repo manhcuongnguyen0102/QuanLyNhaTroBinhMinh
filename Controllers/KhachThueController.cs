@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -36,9 +36,6 @@ public class KhachThueController : Controller
                 Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login", "Account");
         }
-        
-        if (string.IsNullOrWhiteSpace(maNguoiDung))
-            return RedirectToAction("Login", "Account");
 
         // Tìm hợp đồng đang "Hiệu lực" của tài khoản khách thuê này (nếu không có thì lấy hợp đồng gần nhất)
         var hopDong = await _context.HopDongs
@@ -116,14 +113,26 @@ public class KhachThueController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        // Lấy bản ghi chốt Điện Nước & bộ ảnh đồng hồ của kỳ hóa đơn này để khách kiểm tra
+        // Lấy bản ghi chốt Điện Nước & danh sách sự cố có phí sửa chữa để khách kiểm tra
         if (hoaDon.MaHopDongNavigation?.MaPhong != null)
         {
+            string maP = hoaDon.MaHopDongNavigation.MaPhong;
+
             ViewBag.ChiSoKyNay = await _context.ChiSoDienNuocs
                 .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.MaPhong == hoaDon.MaHopDongNavigation.MaPhong
+                .FirstOrDefaultAsync(c => c.MaPhong == maP
                                        && c.Thang == hoaDon.Thang
                                        && c.Nam == hoaDon.Nam);
+
+            // Lấy danh sách sự cố có thu phí sửa chữa để hiển thị rõ cho Khách thuê đối chiếu
+            ViewBag.DanhSachSuCoCoPhi = await _context.SuCos
+                .AsNoTracking()
+                .Where(s => s.MaPhong == maP
+                         && s.ChiPhiSua > 0
+                         && s.NgayTao.HasValue
+                         && s.NgayTao.Value.Month == hoaDon.Thang
+                         && s.NgayTao.Value.Year == hoaDon.Nam)
+                .ToListAsync();
         }
 
         return View(hoaDon);
