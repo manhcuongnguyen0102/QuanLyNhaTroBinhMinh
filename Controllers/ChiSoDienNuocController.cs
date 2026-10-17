@@ -186,7 +186,23 @@ public class ChiSoDienNuocController : Controller
         if (id != chiSo.MaChiSo) return NotFound();
 
         ValidateChiSoConstraints(chiSo);
-        ValidateDanhSachFileAnh(filesAnhDongHo);
+        ValidateDanhSachFileAnh(filesAnhDongHo, anhGiuLai?.Count ?? 0);
+        var banGhiGoc = await _context.ChiSoDienNuocs.AsNoTracking().FirstOrDefaultAsync(c => c.MaChiSo == id);
+        if (banGhiGoc != null && (banGhiGoc.DienCu != chiSo.DienCu || banGhiGoc.DienMoi != chiSo.DienMoi || banGhiGoc.NuocCu != chiSo.NuocCu || banGhiGoc.NuocMoi != chiSo.NuocMoi))
+        {
+            bool daCoHoaDonThuTien = await _context.HoaDons
+                .Include(h => h.MaHopDongNavigation)
+                .AnyAsync(h => h.MaHopDongNavigation != null
+                            && h.MaHopDongNavigation.MaPhong == chiSo.MaPhong
+                            && h.Thang == chiSo.Thang
+                            && h.Nam == chiSo.Nam
+                            && h.TrangThai != "Chưa thanh toán");
+
+            if (daCoHoaDonThuTien)
+            {
+                ModelState.AddModelError("", $"Kỳ Tháng {chiSo.Thang:D2}/{chiSo.Nam} của phòng {chiSo.MaPhong} đã phát hành hóa đơn và đã thu tiền! Bạn chỉ có thể cập nhật ảnh minh chứng, không được thay đổi số liệu đồng hồ.");
+            }
+        }
 
         if (ModelState.IsValid)
         {
@@ -216,8 +232,15 @@ public class ChiSoDienNuocController : Controller
         return View(chiSo);
     }
 
-    private void ValidateDanhSachFileAnh(List<IFormFile>? files)
+    private void ValidateDanhSachFileAnh(List<IFormFile>? files, int soAnhCuGiuLai = 0)
     {
+        int soAnhMoi = files?.Count(f => f.Length > 0) ?? 0;
+        if (soAnhCuGiuLai + soAnhMoi > 4)
+        {
+            ModelState.AddModelError("AnhDongHo", $"Tối đa chỉ được đính kèm 4 ảnh đồng hồ cho mỗi kỳ chốt (Hiện bạn đang chọn {soAnhCuGiuLai + soAnhMoi} ảnh).");
+            return;
+        }
+
         if (files == null || !files.Any()) return;
 
         var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };

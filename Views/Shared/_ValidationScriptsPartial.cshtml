@@ -1,2 +1,15 @@
 ﻿<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+<script>
+    // Việt hóa thông báo lỗi mặc định của jQuery Validation
+    if ($.validator) {
+        $.extend($.validator.messages, {
+            required: "Trường thông tin này là bắt buộc.",
+            number: "Vui lòng nhập một số hợp lệ.",
+            digits: "Vui lòng chỉ nhập chữ số nguyên.",
+            min: $.validator.format("Giá trị nhập vào phải lớn hơn hoặc bằng {0}."),
+            max: $.validator.format("Giá trị nhập vào không được vượt quá {0}."),
+            range: $.validator.format("Vui lòng nhập giá trị trong khoảng từ {0} đến {1}.")
+        });
+    }
+</script>

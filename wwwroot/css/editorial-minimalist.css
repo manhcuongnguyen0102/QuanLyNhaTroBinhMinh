@@ -507,3 +507,53 @@ h1, .h1, .editorial-title {
         color: #4B5563 !important;
         border-color: #D1D5DB !important;
     }
+/* ==========================================================================
+   FIX HIỂN THỊ THÔNG BÁO LỖI VALIDATION (ĐỎ ĐẬM SẮC NÉT - KHÔNG BỊ CHỮ TRẮNG/XÁM)
+   ========================================================================== */
+
+/* 1. Dòng báo lỗi ngay dưới từng ô Input (Client-side & Server-side) */
+.field-validation-error,
+.field-validation-error span,
+label.error,
+span.error,
+form .error:not(input):not(select):not(textarea),
+.text-danger {
+    color: #DC2626 !important; /* Đỏ đậm nổi bật trên nền trắng */
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+    width: auto !important;
+    display: block;
+    margin-top: 0.35rem;
+}
+
+/* 2. Viền đỏ cảnh báo cho chính ô Input đang bị nhập sai */
+input.input-validation-error,
+select.input-validation-error,
+textarea.input-validation-error,
+input.form-control.error,
+select.form-control.error,
+textarea.form-control.error {
+    border-color: #DC2626 !important;
+    background-color: #FEF2F2 !important;
+    color: #111827 !important;
+    font-size: 0.95rem !important;
+    width: 100% !important;
+}
+
+/* 3. Hộp tổng hợp lỗi ở đầu trang (Validation Summary / Alert Danger) */
+.alert-editorial-danger,
+.alert-editorial-danger *,
+.validation-summary-errors,
+.validation-summary-errors *,
+.validation-summary-errors ul,
+.validation-summary-errors ul li {
+    color: #991B1B !important; /* Đỏ sẫm tuyệt đối không bao giờ bị biến thành chữ trắng */
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+}
+
+    .validation-summary-errors ul {
+        margin-bottom: 0;
+        padding-left: 1.25rem;
+    }

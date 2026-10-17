@@ -24,6 +24,22 @@ public class KhachThueController : Controller
         if (string.IsNullOrWhiteSpace(maNguoiDung))
             return RedirectToAction("Login", "Account");
 
+        // CHỐT CHẶN BUG-05: Kiểm tra thời gian thực xem tài khoản có vừa bị Chủ trọ khóa không
+        var taiKhoanHienTai = await _context.NguoiDungs
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.MaNguoiDung == maNguoiDung);
+
+        if (taiKhoanHienTai == null || taiKhoanHienTai.TrangThai == "Khóa")
+        {
+            await Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions.SignOutAsync(
+                HttpContext,
+                Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Login", "Account");
+        }
+        
+        if (string.IsNullOrWhiteSpace(maNguoiDung))
+            return RedirectToAction("Login", "Account");
+
         // Tìm hợp đồng đang "Hiệu lực" của tài khoản khách thuê này (nếu không có thì lấy hợp đồng gần nhất)
         var hopDong = await _context.HopDongs
             .Include(h => h.MaPhongNavigation)
@@ -189,7 +205,7 @@ public class KhachThueController : Controller
     // 4. KHÁCH THUÊ GỬI BÁO CÁO SỰ CỐ HỎNG HÓC TỪ PHÒNG ĐANG Ở (POST)
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> BaoCaoSuCo(string? maPhong, string moTa)
+    public async Task<IActionResult> BaoCaoSuCo(string moTa)
     {
         string? maNguoiDung = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(maNguoiDung))
@@ -201,14 +217,27 @@ public class KhachThueController : Controller
             return RedirectToAction(nameof(Index));
         }
 
+        // CHỐT CHẶN CHỐNG IDOR: Tự truy vấn phòng từ Hợp đồng đang Hiệu lực của chính tài khoản này trong CSDL,
+        // tuyệt đối không tin tưởng mã phòng truyền từ thẻ input hidden dưới trình duyệt!
+        var hopDongCuaKhach = await _context.HopDongs
+            .AsNoTracking()
+            .OrderBy(h => h.TrangThai == "Hiệu lực" ? 0 : 1)
+            .FirstOrDefaultAsync(h => h.MaNguoiDungDaiDien == maNguoiDung);
+
+        if (hopDongCuaKhach == null || string.IsNullOrWhiteSpace(hopDongCuaKhach.MaPhong))
+        {
+            TempData["Loi"] = "Tài khoản của bạn không có hợp đồng thuê phòng hợp lệ để gửi báo cáo sự cố.";
+            return RedirectToAction(nameof(Index));
+        }
+
         string maSuCo = $"SC{DateTime.Now:yyMMdd}_{Random.Shared.Next(100, 999)}";
         var suCoMoi = new SuCo
         {
             MaSuCo = maSuCo,
-            MaPhong = maPhong,
+            MaPhong = hopDongCuaKhach.MaPhong, // Luôn gắn đúng phòng thật của khách thuê
             MaNguoiDungBao = maNguoiDung,
             MoTa = moTa.Trim(),
-            TrangThai = "Chờ xử lý", // Khớp CHECK Constraint (N'Chờ xử lý', N'Đang sửa', N'Đã hoàn thành')
+            TrangThai = "Chờ xử lý",
             ChiPhiSua = 0,
             NgayTao = DateTime.Now,
             DaXoa = false
@@ -217,7 +246,7 @@ public class KhachThueController : Controller
         _context.SuCos.Add(suCoMoi);
         await _context.SaveChangesAsync();
 
-        TempData["ThongBao"] = $"Đã gửi báo cáo sự cố #{maSuCo} tới Chủ trọ thành công. Trạng thái hiện tại: Chờ xử lý.";
+        TempData["ThongBao"] = $"Đã gửi báo cáo sự cố #{maSuCo} (Phòng {hopDongCuaKhach.MaPhong}) tới Chủ trọ thành công.";
         return RedirectToAction(nameof(Index));
     }
 }

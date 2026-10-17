@@ -142,11 +142,13 @@ public class HopDongController : Controller
         if (!string.IsNullOrWhiteSpace(hopDong.MaHopDong))
         {
             hopDong.MaHopDong = hopDong.MaHopDong.Trim().ToUpper();
+            
             if (await _context.HopDongs.AnyAsync(h => h.MaHopDong == hopDong.MaHopDong))
             {
                 ModelState.AddModelError("MaHopDong", "Mã hợp đồng này đã tồn tại trong hệ thống.");
             }
         }
+        
 
         // Chặn tuyệt đối trường hợp 1 phòng có 2 hợp đồng "Hiệu lực" cùng lúc
         if (!string.IsNullOrWhiteSpace(hopDong.MaPhong))
@@ -170,7 +172,23 @@ public class HopDongController : Controller
         {
             ModelState.AddModelError("TienCoc", "Tiền đặt cọc không được nhỏ hơn 0.");
         }
+        hopDong.TrangThai = "Hiệu lực";
+        if (!string.IsNullOrWhiteSpace(hopDong.MaNguoiDungDaiDien))
+        {
+            string maTK = hopDong.MaNguoiDungDaiDien.Trim();
 
+            var hdDangDaiDien = await _context.HopDongs
+                .AsNoTracking()
+                .FirstOrDefaultAsync(h => h.MaNguoiDungDaiDien != null
+                                       && h.MaNguoiDungDaiDien.Trim() == maTK
+                                       && h.TrangThai == "Hiệu lực");
+
+            if (hdDangDaiDien != null)
+            {
+                ModelState.AddModelError("MaNguoiDungDaiDien",
+                    $"Tài khoản '{maTK}' hiện đang đứng tên đại diện cho Hợp đồng #{hdDangDaiDien.MaHopDong} (Phòng {hdDangDaiDien.MaPhong}). Mỗi tài khoản khách thuê chỉ được đại diện cho 1 phòng đang thuê!");
+            }
+        }
         if (ModelState.IsValid)
         {
             hopDong.TrangThai = "Hiệu lực";
@@ -221,6 +239,7 @@ public class HopDongController : Controller
     public async Task<IActionResult> Edit(string id, [Bind("MaHopDong,MaPhong,MaNguoiDungDaiDien,NgayBatDau,NgayKetThuc,TienCoc")] HopDong hopDong)
     {
         if (id != hopDong.MaHopDong) return NotFound();
+      
 
         var hopDongGoc = await _context.HopDongs.AsNoTracking().FirstOrDefaultAsync(h => h.MaHopDong == id);
         if (hopDongGoc == null) return NotFound();
@@ -230,7 +249,7 @@ public class HopDongController : Controller
             TempData["Loi"] = $"Hợp đồng #{hopDong.MaHopDong} đã thanh lý, không thể cập nhật!";
             return RedirectToAction(nameof(Index));
         }
-
+        
         if (hopDong.NgayKetThuc <= hopDong.NgayBatDau)
         {
             ModelState.AddModelError("NgayKetThuc", "Ngày kết thúc hợp đồng phải lớn hơn ngày bắt đầu.");
@@ -249,7 +268,26 @@ public class HopDongController : Controller
                 ModelState.AddModelError("MaPhong", $"Phòng {hopDong.MaPhong} hiện đang thuộc hợp đồng #{hopDongTrung.MaHopDong} (Hiệu lực).");
             }
         }
+        string trangThaiKiemTra = string.IsNullOrWhiteSpace(hopDong.TrangThai) ? "Hiệu lực" : hopDong.TrangThai.Trim();
 
+        if (!string.IsNullOrWhiteSpace(hopDong.MaNguoiDungDaiDien) && trangThaiKiemTra == "Hiệu lực")
+        {
+            string maTK = hopDong.MaNguoiDungDaiDien.Trim();
+            string maHDHienTai = hopDong.MaHopDong.Trim();
+
+            var hdDangDaiDien = await _context.HopDongs
+                .AsNoTracking()
+                .FirstOrDefaultAsync(h => h.MaNguoiDungDaiDien != null
+                                       && h.MaNguoiDungDaiDien.Trim() == maTK
+                                       && h.TrangThai == "Hiệu lực"
+                                       && h.MaHopDong.Trim() != maHDHienTai);
+
+            if (hdDangDaiDien != null)
+            {
+                ModelState.AddModelError("MaNguoiDungDaiDien",
+                    $"Tài khoản '{maTK}' hiện đang đứng tên đại diện cho Hợp đồng #{hdDangDaiDien.MaHopDong} (Phòng {hdDangDaiDien.MaPhong}). Không thể gán trùng vào hợp đồng này!");
+            }
+        }
         if (ModelState.IsValid)
         {
             // Giữ nguyên trạng thái "Hiệu lực" (chỉ có nút Thanh lý mới được đóng hợp đồng)
@@ -371,7 +409,7 @@ public class HopDongController : Controller
                 u.MaNguoiDung,
                 HienThi = $"{u.TenDangNhap} (Mã: {u.MaNguoiDung})"
             }).ToListAsync();
-
+       
         ViewBag.DanhSachPhong = new SelectList(rooms, "MaPhong", "HienThi", selectedPhong);
         ViewBag.DanhSachNguoiDung = new SelectList(users, "MaNguoiDung", "HienThi", selectedNguoiDung);
     }

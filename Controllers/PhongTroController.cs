@@ -110,7 +110,14 @@ public class PhongTroController : Controller
         {
             return NotFound();
         }
+        // Đặt trong hàm Edit [HttpPost] của PhongTroController:
+        bool coHopDongHieuLuc = await _context.HopDongs
+            .AnyAsync(h => h.MaPhong == phongTro.MaPhong && h.TrangThai == "Hiệu lực");
 
+        if (coHopDongHieuLuc && phongTro.TrangThai != "Đang thuê")
+        {
+            ModelState.AddModelError("TrangThai", $"Phòng {phongTro.MaPhong} đang có Hợp đồng đang Hiệu lực! Không thể chuyển thủ công sang '{phongTro.TrangThai}'. Vui lòng thực hiện Thanh lý hợp đồng nếu khách trả phòng.");
+        }
         if (ModelState.IsValid)
         {
             try
@@ -129,6 +136,7 @@ public class PhongTroController : Controller
             }
             return RedirectToAction(nameof(Index));
         }
+        
 
         return View(phongTro);
     }
@@ -138,6 +146,15 @@ public class PhongTroController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(string id)
     {
+        // Đặt ở đầu hàm Delete [HttpPost] của PhongTroController:
+        bool dangCoKhachThue = await _context.HopDongs
+            .AnyAsync(h => h.MaPhong == id && h.TrangThai == "Hiệu lực");
+
+        if (dangCoKhachThue)
+        {
+            TempData["Loi"] = $"Không thể xóa phòng {id} vì phòng đang có Hợp đồng thuê đang Hiệu lực!";
+            return RedirectToAction(nameof(Index));
+        }
         var phongTro = await _context.PhongTros
             .Include(p => p.HopDongs)
             .Include(p => p.ChiSoDienNuocs)
@@ -158,7 +175,8 @@ public class PhongTroController : Controller
             TempData["Loi"] = $"Không thể xóa cứng phòng {phongTro.TenPhong} vì đã có dữ liệu Hợp đồng/Điện nước/Sự cố liên kết.";
             return RedirectToAction(nameof(Index));
         }
-
+        // Đặt ở đầu hàm Delete [HttpPost] của PhongTroController:
+      
         _context.PhongTros.Remove(phongTro);
         await _context.SaveChangesAsync();
         TempData["ThongBao"] = $"Đã xóa phòng {phongTro.TenPhong} ({phongTro.MaPhong}).";
