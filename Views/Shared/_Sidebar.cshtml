@@ -1,4 +1,4 @@
-﻿@{
+﻿@* @{
     // Tự động lấy tên Controller hiện tại để bật trạng thái Active (Kiểu A)
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "Home";
 }
@@ -108,6 +108,113 @@
     <!-- 5. NÚT THU GỌN SIDEBAR (VUÔNG PHẲNG VIỀN MẢNH 1PX) -->
     <div class="text-center d-none d-md-inline mt-2 mb-4">
         <button id="sidebarToggle" title="Thu gọn / Mở rộng thanh menu"></button>
+    </div>
+
+</ul> *@
+@{
+    string currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "Home";
+}
+
+<ul class="navbar-nav bg-white sidebar accordion" id="accordionSidebar" style="border-right: 1px solid #E5E7EB;">
+
+    <!-- Thương hiệu Nhà trọ Bình Minh -->
+    <a class="sidebar-brand d-flex align-items-center justify-content-center py-3" asp-controller="Home" asp-action="Index"
+       style="border-bottom: 1px solid #E5E7EB; height: 64px;">
+        <div class="sidebar-brand-icon d-flex align-items-center justify-content-center"
+             style="width: 34px; height: 34px; background-color: #111827; color: #FFFFFF; font-weight: 800; font-size: 0.85rem; border-radius: 2px; flex-shrink: 0;">
+            BM
+        </div>
+        <div class="sidebar-brand-text mx-2 text-left" style="line-height: 1.15;">
+            <div style="font-size: 0.9rem; font-weight: 800; color: #111827; letter-spacing: -0.01em;">BÌNH MINH</div>
+            <small class="text-muted" style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em;">QUẢN LÝ LƯU TRÚ</small>
+        </div>
+    </a>
+
+    <!-- Tổng quan -->
+    <li class="nav-item mt-2 @(currentController == "Home" ? "active" : "")">
+        <a class="nav-link" asp-controller="Home" asp-action="Index" title="Bàn làm việc tổng quan">
+            <i class="fas fa-fw fa-th-large"></i>
+            <span>Tổng quan</span>
+        </a>
+    </li>
+
+    <hr class="sidebar-divider my-2" style="border-color: #F3F4F6;">
+    <div class="sidebar-heading">QUẢN LÝ LƯU TRÚ</div>
+
+    <li class="nav-item @(currentController == "PhongTro" ? "active" : "")">
+        <a class="nav-link" asp-controller="PhongTro" asp-action="Index" title="Phòng trọ">
+            <i class="fas fa-fw fa-building"></i>
+            <span>Phòng trọ</span>
+        </a>
+    </li>
+
+    <li class="nav-item @(currentController == "HopDong" ? "active" : "")">
+        <a class="nav-link" asp-controller="HopDong" asp-action="Index" title="Hợp đồng thuê">
+            <i class="fas fa-fw fa-file-signature"></i>
+            <span>Hợp đồng thuê</span>
+        </a>
+    </li>
+
+    <li class="nav-item @(currentController == "KhachO" ? "active" : "")">
+        <a class="nav-link" asp-controller="KhachO" asp-action="Index" title="Khách ở & Tạm trú">
+            <i class="fas fa-fw fa-users"></i>
+            <span>Khách ở & Tạm trú</span>
+        </a>
+    </li>
+
+    <hr class="sidebar-divider my-2" style="border-color: #F3F4F6;">
+    <div class="sidebar-heading">TÀI CHÍNH & DỊCH VỤ</div>
+
+    <li class="nav-item @(currentController == "ChiSoDienNuoc" ? "active" : "")">
+        <a class="nav-link" asp-controller="ChiSoDienNuoc" asp-action="Index" title="Chốt điện nước">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Chốt điện nước</span>
+        </a>
+    </li>
+
+    <li class="nav-item @(currentController == "DichVu" ? "active" : "")">
+        <a class="nav-link" asp-controller="DichVu" asp-action="Index" title="Đơn giá dịch vụ">
+            <i class="fas fa-fw fa-concierge-bell"></i>
+            <span>Đơn giá dịch vụ</span>
+        </a>
+    </li>
+
+    <li class="nav-item @(currentController == "HoaDon" ? "active" : "")">
+        <a class="nav-link" asp-controller="HoaDon" asp-action="Index" title="Hóa đơn & Công nợ">
+            <i class="fas fa-fw fa-file-invoice-dollar"></i>
+            <span>Hóa đơn & Công nợ</span>
+        </a>
+    </li>
+
+    <hr class="sidebar-divider my-2" style="border-color: #F3F4F6;">
+    <div class="sidebar-heading">VẬN HÀNH & HỆ THỐNG</div>
+
+    <li class="nav-item @(currentController == "SuCo" ? "active" : "")">
+        <a class="nav-link" asp-controller="SuCo" asp-action="Index" title="Sự cố & Bảo trì">
+            <i class="fas fa-fw fa-tools"></i>
+            <span>Sự cố & Bảo trì</span>
+        </a>
+    </li>
+
+    <li class="nav-item @(currentController == "ThongBao" ? "active" : "")">
+        <a class="nav-link" asp-controller="ThongBao" asp-action="Index" title="Bảng tin thông báo">
+            <i class="fas fa-fw fa-bullhorn"></i>
+            <span>Bảng tin thông báo</span>
+        </a>
+    </li>
+
+    <li class="nav-item @(currentController == "NguoiDung" ? "active" : "")">
+        <a class="nav-link" asp-controller="NguoiDung" asp-action="Index" title="Tài khoản & Phân quyền">
+            <i class="fas fa-fw fa-user-shield"></i>
+            <span>Tài khoản & Phân quyền</span>
+        </a>
+    </li>
+
+    <hr class="sidebar-divider d-none d-md-block my-2" style="border-color: #F3F4F6;">
+
+    <!-- Nút thu gọn Sidebar mượt -->
+    <div class="text-center d-none d-md-inline mt-2">
+        <button class=" border-0" id="sidebarToggle" title="Thu gọn / Mở rộng thanh menu"></button>
     </div>
 
 </ul>
