@@ -141,9 +141,11 @@ public class KhachThueController : Controller
     // 3. KHÁCH THUÊ TỰ THANH TOÁN HÓA ĐƠN (TỰ ĐỘNG NHẢY LỊCH SỬ & TỰ ĐỘNG ĐỔI TRẠNG THÁI HÓA ĐƠN)
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ThanhToanHoaDon(string maHoaDon, decimal soTienTra, string phuongThuc)
+    public async Task<IActionResult> ThanhToanHoaDon(string maHoaDon, decimal soTienTra)
     {
         string? maNguoiDung = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(maNguoiDung))
+            return RedirectToAction("Login", "Account");
 
         var hoaDon = await _context.HoaDons
             .Include(h => h.MaHopDongNavigation)
@@ -152,6 +154,7 @@ public class KhachThueController : Controller
 
         if (hoaDon == null) return NotFound();
 
+        // Chốt chặn bảo mật IDOR
         if (hoaDon.MaHopDongNavigation?.MaNguoiDungDaiDien != maNguoiDung)
         {
             TempData["Loi"] = "Bạn không có quyền thanh toán hóa đơn của phòng khác.";
@@ -160,13 +163,8 @@ public class KhachThueController : Controller
 
         if (soTienTra <= 0)
         {
-            TempData["Loi"] = "Số tiền thanh toán phải lớn hơn 0đ.";
+            TempData["Loi"] = "Số tiền tạo mã QR thanh toán phải lớn hơn 0đ.";
             return RedirectToAction(nameof(ChiTietHoaDon), new { id = maHoaDon });
-        }
-
-        if (phuongThuc != "Tiền mặt" && phuongThuc != "Chuyển khoản")
-        {
-            phuongThuc = "Chuyển khoản";
         }
 
         decimal daTraTruocDo = hoaDon.ThanhToans.Sum(t => t.SoTienTra);
@@ -175,25 +173,25 @@ public class KhachThueController : Controller
 
         if (soTienTra > conNo)
         {
-            TempData["Loi"] = $"Số tiền thanh toán ({soTienTra:N0}đ) vượt quá dư nợ còn lại của hóa đơn ({conNo:N0}đ)!";
+            TempData["Loi"] = $"Số tiền chuyển khoản ({soTienTra:N0}đ) vượt quá dư nợ còn lại của hóa đơn ({conNo:N0}đ)!";
             return RedirectToAction(nameof(ChiTietHoaDon), new { id = maHoaDon });
         }
 
-        // Tạo bản ghi ThanhToan mới (Mã gọn <= 15 ký tự)
-        string maThanhToan = $"TT{DateTime.Now:ddHHmmss}_{Random.Shared.Next(10, 99)}";
+        // Tạo bản ghi ThanhToan mới — Khóa cứng phương thức là "Chuyển khoản" (VietQR)
+        string maThanhToan = $"QR{DateTime.Now:ddHHmmss}_{Random.Shared.Next(10, 99)}";
         var giaoDichMoi = new ThanhToan
         {
             MaThanhToan = maThanhToan,
             MaHoaDon = maHoaDon,
             SoTienTra = soTienTra,
             NgayTra = DateTime.Now,
-            PhuongThuc = phuongThuc,
+            PhuongThuc = "Chuyển khoản",
             DaXoa = false
         };
 
         _context.ThanhToans.Add(giaoDichMoi);
 
-        // TỰ ĐỘNG CẬP NHẬT TRẠNG THÁI HÓA ĐƠN MÀ KHÔNG CẦN CHỦ TRỌ BẤM NÚT
+        // Tự động cập nhật số tiền còn lại & trạng thái Hóa đơn
         decimal tongDaTraMoi = daTraTruocDo + soTienTra;
         if (tongDaTraMoi >= tongHoaDon)
         {
@@ -207,7 +205,7 @@ public class KhachThueController : Controller
         _context.HoaDons.Update(hoaDon);
         await _context.SaveChangesAsync();
 
-        TempData["ThongBao"] = $"Thanh toán thành công {soTienTra:N0}đ ({phuongThuc}) — Mã GD #{maThanhToan}. Trạng thái hóa đơn đã tự động cập nhật thành '{hoaDon.TrangThai}'!";
+        TempData["ThongBao"] = $"Đối soát VietQR thành công: Đã nhận {soTienTra:N0}đ (Mã GD #{maThanhToan}). Số dư nợ còn lại: {Math.Max(0, tongHoaDon - tongDaTraMoi):N0}đ!";
         return RedirectToAction(nameof(ChiTietHoaDon), new { id = maHoaDon });
     }
 

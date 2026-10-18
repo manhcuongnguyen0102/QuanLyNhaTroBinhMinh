@@ -179,3 +179,19 @@ select *from PhongTro
 USE QuanLyNhaTroBinhMinh;
 SELECT OBJECT_NAME(parent_object_id) AS TenBang, name AS TenRangBuoc, definition AS GiaTriChoPhep
 FROM sys.check_constraints;
+
+
+
+DELETE FROM ThanhToan;
+DELETE FROM ChiTietHoaDon;
+DELETE FROM HoaDon;
+DELETE FROM ChiSoDienNuoc;
+DELETE FROM DichVu_HopDong;
+DELETE FROM KhachO;
+DELETE FROM HopDong;
+DELETE FROM SuCo;
+DELETE FROM ThongBao;
+DELETE FROM PhongTro;
+DELETE FROM DichVu;
+DELETE FROM NguoiDung;
+DELETE FROM VaiTro;

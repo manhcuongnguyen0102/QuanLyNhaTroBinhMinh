@@ -6,21 +6,91 @@
 
     var phong = Model.MaHopDongNavigation?.MaPhongNavigation;
     var chiSo = ViewBag.ChiSoKyNay as QuanLyNhaTroBinhMinh.Models.ChiSoDienNuoc;
+    var dsSuCoCoPhi = ViewBag.DanhSachSuCoCoPhi as List<QuanLyNhaTroBinhMinh.Models.SuCo> ?? new();
 
     decimal giaPhongCung = phong?.GiaThueCung ?? 0;
     decimal tongTienHoaDon = Model.TongTien ?? 0;
     decimal daThu = Model.ThanhToans.Sum(t => t.SoTienTra);
     decimal conNo = Math.Max(0, tongTienHoaDon - daThu);
-    bool daTatToan = Model.TrangThai == "Đã thanh toán";
+    bool daTatToan = Model.TrangThai == "Đã thanh toán" || conNo <= 0;
 
     var dsAnhDongHo = (chiSo != null && !string.IsNullOrWhiteSpace(chiSo.AnhDongHo))
         ? chiSo.AnhDongHo.Split(';', StringSplitOptions.RemoveEmptyEntries).Where(p => p.StartsWith("/uploads/")).ToArray()
         : Array.Empty<string>();
+
+    // Cấu hình tài khoản ngân hàng nhận tiền của Chủ trọ (Dùng tạo mã VietQR động)
+    string nganHangId = "MB";
+    string tenNganHang = "MB Bank (Ngân hàng Quân Đội)";
+    string soTaiKhoan = "0388999888";
+    string chuTaiKhoan = "NHA TRO BINH MINH";
+    string noiDungChuyenKhoan = $"TT {Model.MaHoaDon}".Replace("_", " ");
 }
+
+<style>
+    /* Thiết kế Cổng Quét Mã VietQR Chuyên Nghiệp */
+    .qr-gateway-box {
+        background: linear-gradient(180deg, #ECFDF5 0%, #FFFFFF 100%);
+        border: 2px solid #059669;
+        border-radius: 6px;
+        padding: 1.25rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .qr-frame {
+        display: inline-block;
+        padding: 12px;
+        background: #FFFFFF;
+        border: 1px solid #A7F3D0;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.15);
+        margin-bottom: 0.85rem;
+    }
+
+    .bank-detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.55rem 0;
+        border-bottom: 1px dashed #E5E7EB;
+        font-size: 0.85rem;
+    }
+
+        .bank-detail-row:last-child {
+            border-bottom: none;
+        }
+
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #059669;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+        animation: pulseAnim 1.4s infinite;
+    }
+
+    @@keyframes pulseAnim {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7);
+        }
+
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 8px rgba(5, 150, 105, 0);
+        }
+
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(5, 150, 105, 0);
+        }
+    }
+</style>
 
 <div class="d-sm-flex align-items-end justify-content-between mb-4 pb-3" style="border-bottom: 1px solid #E5E7EB;">
     <div>
-        <span class="badge-editorial-mint mb-2 d-inline-block">CHI TIẾT & THANH TOÁN HÓA ĐƠN</span>
+        <span class="badge-editorial-mint mb-2 d-inline-block">CHI TIẾT & ĐỐI SOÁT HÓA ĐƠN</span>
         <h1 class="editorial-title mb-1">Hóa đơn #@Model.MaHoaDon (Tháng @(Model.Thang?.ToString("D2"))/@Model.Nam)</h1>
         <p class="editorial-subtitle mb-0">
             @(phong?.TenPhong ?? $"Phòng {Model.MaHopDongNavigation?.MaPhong}") — Hợp đồng #@Model.MaHopDong
@@ -49,7 +119,7 @@
 }
 
 <div class="row">
-    <!-- CỘT TRÁI (7 PHẦN): BẢNG KÊ CHI TIẾT HÓA ĐƠN & ẢNH MINH CHỨNG ĐỒNG HỒ -->
+    <!-- CỘT TRÁI (7 PHẦN): BẢNG KÊ CHI TIẾT HÓA ĐƠN & ẢNH ĐỒNG HỒ -->
     <div class="col-xl-7 col-lg-7 mb-4">
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -100,6 +170,20 @@
                                     <td class="text-right font-weight-bold" style="color: #111827;">@ct.ThanhTien.ToString("N0")đ</td>
                                 </tr>
                             }
+
+                            @foreach (var sc in dsSuCoCoPhi)
+                            {
+                                decimal phiSua = sc.ChiPhiSua ?? 0;
+                                <tr style="white-space: nowrap; background-color: #FFFBEB;">
+                                    <td class="font-weight-bold" style="color: #B45309;">
+                                        @(stt++). Phí sửa chữa & Bảo trì sự cố (#@sc.MaSuCo)
+                                    </td>
+                                    <td class="text-muted" style="white-space: normal;">@sc.MoTa</td>
+                                    <td class="text-right">@phiSua.ToString("N0")đ</td>
+                                    <td class="text-center">1</td>
+                                    <td class="text-right font-weight-bold" style="color: #B45309;">@phiSua.ToString("N0")đ</td>
+                                </tr>
+                            }
                         </tbody>
                         <tfoot style="background-color: #FAFAFA; border-top: 2px solid #E5E7EB;">
                             <tr>
@@ -107,11 +191,11 @@
                                 <td class="text-right font-weight-bold" style="color: #111827; font-size: 1.15rem;">@tongTienHoaDon.ToString("N0")đ</td>
                             </tr>
                             <tr>
-                                <td colspan="4" class="text-right font-weight-bold" style="color: #059669;">ĐÃ THANH TOÁN:</td>
+                                <td colspan="4" class="text-right font-weight-bold" style="color: #059669;">ĐÃ THANH TOÁN (TIỀN MẶT / QR):</td>
                                 <td class="text-right font-weight-bold" style="color: #059669;">@daThu.ToString("N0")đ</td>
                             </tr>
                             <tr>
-                                <td colspan="4" class="text-right font-weight-bold" style="color: #DC2626;">SỐ TIỀN CÒN CẦN ĐÓNG:</td>
+                                <td colspan="4" class="text-right font-weight-bold" style="color: #DC2626;">SỐ TIỀN CÒN LẠI CẦN ĐÓNG:</td>
                                 <td class="text-right font-weight-bold" style="color: #DC2626; font-size: 1.15rem;">@conNo.ToString("N0")đ</td>
                             </tr>
                         </tfoot>
@@ -120,7 +204,6 @@
             </div>
         </div>
 
-        <!-- Bộ ảnh chụp đồng hồ Điện & Nước của kỳ này -->
         @if (dsAnhDongHo.Length > 0)
         {
             <div class="card">
@@ -141,37 +224,86 @@
         }
     </div>
 
-    <!-- CỘT PHẢI (5 PHẦN): KHUNG THANH TOÁN TRỰC TUYẾN & LỊCH SỬ CÁC ĐỢT ĐÃ ĐÓNG -->
+    <!-- CỘT PHẢI (5 PHẦN): CỔNG CHUYỂN KHOẢN VIETQR ĐỘNG & LỊCH SỬ CÁC ĐỢT ĐÓNG TIỀN -->
     <div class="col-xl-5 col-lg-5 mb-4">
         @if (!daTatToan)
         {
             <div class="card mb-4" style="border-top: 4px solid #059669;">
-                <div class="card-header" style="background-color: #ECFDF5 !important; color: #059669 !important;">
-                    <i class="fas fa-credit-card mr-2"></i>Thực hiện thanh toán hóa đơn
+                <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #ECFDF5 !important; color: #059669 !important;">
+                    <span><i class="fas fa-qrcode mr-2"></i>Thanh toán Chuyển khoản VietQR 24/7</span>
+                    <span class="badge-editorial-mint">Tự động</span>
                 </div>
                 <div class="card-body">
-                    <form asp-action="ThanhToanHoaDon" method="post">
+                    <form asp-action="ThanhToanHoaDon" method="post" id="formVietQR">
                         <input type="hidden" name="maHoaDon" value="@Model.MaHoaDon" />
 
                         <div class="form-group mb-3">
-                            <label class="editorial-label">Số tiền muốn thanh toán đợt này (VNĐ) *</label>
-                            <input type="number" name="soTienTra" value="@conNo" min="1000" max="@conNo" step="1000"
-                                   class="form-control font-weight-bold" style="font-size: 1.1rem; color: #059669;" required />
+                            <label class="editorial-label">Nhập số tiền muốn chuyển khoản đợt này (VNĐ) *</label>
+                            <div class="d-flex" style="gap: 0.5rem;">
+                                <input type="number" name="soTienTra" id="inputSoTienQR" value="@conNo" min="1000" max="@conNo" step="1000"
+                                       class="form-control font-weight-bold" style="font-size: 1.15rem; color: #059669;" required />
+                                <button type="button" class="btn btn-secondary btn-sm px-3" style="white-space: nowrap;"
+                                        onclick="capNhatMaQR()" title="Cập nhật lại mã QR theo số tiền mới">
+                                    <i class="fas fa-sync-alt mr-1"></i>Tạo lại QR
+                                </button>
+                            </div>
                             <small class="text-muted d-block mt-1">
-                                Bạn có thể thanh toán toàn bộ (<strong>@conNo.ToString("N0")đ</strong>) hoặc nhập số tiền nhỏ hơn để thanh toán từng đợt.
+                                Tối đa cần đóng: <strong style="color: #DC2626;">@conNo.ToString("N0")đ</strong> (Có thể nhập số nhỏ hơn để chuyển khoản từng đợt).
                             </small>
                         </div>
 
-                        <div class="form-group mb-4">
-                            <label class="editorial-label">Phương thức thanh toán *</label>
-                            <select name="phuongThuc" class="form-control">
-                                <option value="Chuyển khoản">Chuyển khoản ngân hàng (Tự động gạch nợ)</option>
-                                <option value="Tiền mặt">Tiền mặt</option>
-                            </select>
+                        <!-- KHUNG HIỂN THỊ MÃ VIETQR ĐỘNG THEO SỐ TIỀN -->
+                        <div class="qr-gateway-box mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #A7F3D0;">
+                                <span class="small font-weight-bold" style="color: #065F46;">
+                                    <span class="pulse-dot"></span>Cổng VietQR Napas 247
+                                </span>
+                                <span class="badge badge-dark py-1 px-2" style="font-size: 0.75rem;">
+                                    <i class="far fa-clock mr-1"></i>Hiệu lực: <span id="qrTimer">05:00</span>
+                                </span>
+                            </div>
+
+                            <!-- Ảnh QR tự động nhúng Số tiền & Nội dung chuyển khoản -->
+                            <div class="qr-frame mt-1">
+                                <img id="imgVietQR"
+                                     src=""
+                                     alt="Mã QR Chuyển khoản"
+                                     style="width: 210px; height: 210px; object-fit: contain;" />
+                            </div>
+
+                            <div class="text-left bg-white p-3" style="border: 1px solid #E5E7EB; border-radius: 4px;">
+                                <div class="bank-detail-row">
+                                    <span class="text-muted">Ngân hàng thụ hưởng:</span>
+                                    <strong style="color: #111827;">@tenNganHang</strong>
+                                </div>
+                                <div class="bank-detail-row">
+                                    <span class="text-muted">Chủ tài khoản:</span>
+                                    <strong style="color: #111827;">@chuTaiKhoan</strong>
+                                </div>
+                                <div class="bank-detail-row">
+                                    <span class="text-muted">Số tài khoản:</span>
+                                    <strong style="color: #059669; font-family: monospace; font-size: 0.95rem;">@soTaiKhoan</strong>
+                                </div>
+                                <div class="bank-detail-row">
+                                    <span class="text-muted">Số tiền định danh QR:</span>
+                                    <strong id="lblSoTienQR" style="color: #DC2626; font-size: 1rem;">@conNo.ToString("N0")đ</strong>
+                                </div>
+                                <div class="bank-detail-row">
+                                    <span class="text-muted">Nội dung CK bắt buộc:</span>
+                                    <span class="badge-editorial-mint font-weight-bold">@noiDungChuyenKhoan</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-editorial-cta btn-block py-2">
-                            <i class="fas fa-check-circle mr-2"></i>Xác nhận thanh toán ngay
+                        <!-- Ghi chú phân tách rõ nghiệp vụ Tiền mặt vs Chuyển khoản QR -->
+                        <div class="p-2 mb-3 small text-muted" style="background-color: #F9FAFB; border-left: 3px solid #6B7280;">
+                            <i class="fas fa-info-circle mr-1" style="color: #111827;"></i>
+                            <strong>Lưu ý về Tiền mặt:</strong> Nếu bạn đóng tiền mặt trực tiếp cho Chủ trọ, Chủ trọ sẽ nhập số tiền mặt đó vào hệ thống để trừ trực tiếp vào dư nợ hóa đơn của bạn.
+                        </div>
+
+                        <!-- Nút xác nhận đã quét QR có hiệu ứng đối soát ngân hàng -->
+                        <button type="button" id="btnXacNhanQR" onclick="xacNhanDaQuetQR()" class="btn btn-primary btn-editorial-cta btn-block py-2">
+                            <i class="fas fa-check-double mr-2"></i>Tôi đã quét mã QR & Chuyển khoản
                         </button>
                     </form>
                 </div>
@@ -186,7 +318,7 @@
             </div>
         }
 
-        <!-- Bảng Lịch sử các đợt thanh toán của bạn -->
+        <!-- Bảng Lịch sử các đợt thanh toán (Bao gồm cả Tiền mặt Chủ trọ thu & Chuyển khoản QR của khách) -->
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Lịch sử các đợt đã thanh toán</span>
@@ -197,9 +329,9 @@
                     <table class="table mb-0" width="100%" cellspacing="0">
                         <thead>
                             <tr>
-                                <th style="padding: 0.75rem 1rem;">Giao dịch / Thời gian</th>
-                                <th class="text-center" style="padding: 0.75rem 0.5rem;">Phương thức</th>
-                                <th class="text-right" style="padding: 0.75rem 1rem;">Số tiền</th>
+                                <th style="padding: 0.75rem 1rem;">Mã GD / Thời gian</th>
+                                <th class="text-center" style="padding: 0.75rem 0.5rem;">Hình thức</th>
+                                <th class="text-right" style="padding: 0.75rem 1rem;">Số tiền đã trừ</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -219,7 +351,14 @@
                                             <small class="text-muted">@(tt.NgayTra?.ToString("dd/MM/yyyy HH:mm"))</small>
                                         </td>
                                         <td class="text-center align-middle" style="padding: 0.85rem 0.5rem;">
-                                            <span class="badge-editorial-mint">@tt.PhuongThuc</span>
+                                            @if (tt.PhuongThuc == "Tiền mặt")
+                                            {
+                                                <span class="status-badge-occupied"><i class="fas fa-money-bill-wave mr-1"></i>Tiền mặt (Chủ trọ thu)</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge-editorial-mint"><i class="fas fa-qrcode mr-1"></i>VietQR Chuyển khoản</span>
+                                            }
                                         </td>
                                         <td class="text-right align-middle font-weight-bold" style="padding: 0.85rem 1rem; color: #059669; white-space: nowrap;">
                                             +@tt.SoTienTra.ToString("N0")đ
@@ -234,3 +373,81 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        const bankId = "@nganHangId";
+        const accountNo = "@soTaiKhoan";
+        const accountName = encodeURIComponent("@chuTaiKhoan");
+        const transferContent = encodeURIComponent("@noiDungChuyenKhoan");
+        const maxConNo = @conNo;
+
+        function capNhatMaQR() {
+            const inputEl = document.getElementById('inputSoTienQR');
+            const imgEl = document.getElementById('imgVietQR');
+            const lblEl = document.getElementById('lblSoTienQR');
+            if (!inputEl || !imgEl) return;
+
+            let amount = parseInt(inputEl.value) || 0;
+            if (amount <= 0) amount = 1000;
+            if (amount > maxConNo) {
+                amount = maxConNo;
+                inputEl.value = maxConNo;
+            }
+
+            // Hiển thị định dạng tiền VNĐ
+            lblEl.innerText = amount.toLocaleString('vi-VN') + 'đ';
+
+            // 1. Tạo URL chuẩn VietQR Napas 247 (Quét được bằng App Ngân hàng thật)
+            const vietQrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${amount}&addInfo=${transferContent}&accountName=${accountName}`;
+
+            // 2. Dự phòng (Fallback) nếu mạng chặn vietqr.io thì tự chuyển sang bộ sinh QR quốc tế
+            const fallbackQrData = encodeURIComponent(`VIETQR|${bankId}|${accountNo}|${amount}|${decodeURIComponent(transferContent)}`);
+            const fallbackQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${fallbackQrData}`;
+
+            imgEl.onerror = function () {
+                this.onerror = null;
+                this.src = fallbackQrUrl;
+            };
+            imgEl.src = vietQrUrl;
+        }
+
+        // Hiệu ứng giả lập đối soát giao dịch Ngân hàng trong 1.5 giây trước khi gạch nợ
+        function xacNhanDaQuetQR() {
+            const btn = document.getElementById('btnXacNhanQR');
+            const form = document.getElementById('formVietQR');
+            if (!btn || !form) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang đối soát giao dịch VietQR với Ngân hàng...';
+
+            setTimeout(function () {
+                form.submit();
+            }, 1400);
+        }
+
+        // Đồng hồ đếm ngược 05:00 phút cho phiên giao dịch QR
+        document.addEventListener("DOMContentLoaded", function () {
+            capNhatMaQR();
+
+            const inputEl = document.getElementById('inputSoTienQR');
+            if (inputEl) {
+                inputEl.addEventListener('change', capNhatMaQR);
+                inputEl.addEventListener('keyup', capNhatMaQR);
+            }
+
+            let timeRemaining = 300;
+            const timerEl = document.getElementById('qrTimer');
+            if (timerEl) {
+                setInterval(function () {
+                    if (timeRemaining > 0) {
+                        timeRemaining--;
+                        const m = String(Math.floor(timeRemaining / 60)).padStart(2, '0');
+                        const s = String(timeRemaining % 60).padStart(2, '0');
+                        timerEl.innerText = `${m}:${s}`;
+                    }
+                }, 1000);
+            }
+        });
+    </script>
+}

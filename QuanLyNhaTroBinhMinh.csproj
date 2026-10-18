@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Folder Include="DatabaseScript\" />
+    <Folder Include="wwwroot\uploads\" />
   </ItemGroup>
 
   <ItemGroup>

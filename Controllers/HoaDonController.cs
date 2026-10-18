@@ -378,7 +378,68 @@ public class HoaDonController : Controller
         TempData["ThongBao"] = $"Đã ghi nhận thu {soTienTra:N0}đ ({phuongThuc}). Trạng thái hóa đơn hiện tại: {hoaDon.TrangThai}.";
         return RedirectToAction(nameof(Details), new { id = maHoaDon });
     }
+    // CHỦ TRỌ GHI NHẬN KHÁCH ĐÓNG TIỀN MẶT TRỰC TIẾP & TRỪ VÀO CÔNG NỢ HÓA ĐƠN
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ThuTienMat(string maHoaDon, decimal soTienThu)
+    {
+        if (string.IsNullOrWhiteSpace(maHoaDon)) return NotFound();
 
+        var hoaDon = await _context.HoaDons
+            .Include(h => h.ThanhToans)
+            .FirstOrDefaultAsync(h => h.MaHoaDon == maHoaDon);
+
+        if (hoaDon == null) return NotFound();
+
+        if (soTienThu <= 0)
+        {
+            TempData["Loi"] = "Số tiền mặt thu vào phải lớn hơn 0đ.";
+            return RedirectToAction(nameof(Details), new { id = maHoaDon });
+        }
+
+        decimal tongHoaDon = hoaDon.TongTien ?? 0;
+        decimal daTraTruocDo = hoaDon.ThanhToans.Sum(t => t.SoTienTra);
+        decimal conNo = Math.Max(0, tongHoaDon - daTraTruocDo);
+
+        if (soTienThu > conNo)
+        {
+            TempData["Loi"] = $"Số tiền mặt nhập vào ({soTienThu:N0}đ) vượt quá số tiền còn nợ của hóa đơn ({conNo:N0}đ)!";
+            return RedirectToAction(nameof(Details), new { id = maHoaDon });
+        }
+
+        // Tạo bản ghi ThanhToan bằng Tiền mặt (Mã <= 15 ký tự)
+        string maThanhToan = $"TM{DateTime.Now:ddHHmmss}_{Random.Shared.Next(10, 99)}";
+        var dotThuMoi = new ThanhToan
+        {
+            MaThanhToan = maThanhToan,
+            MaHoaDon = maHoaDon,
+            SoTienTra = soTienThu,
+            NgayTra = DateTime.Now,
+            PhuongThuc = "Tiền mặt",
+            DaXoa = false
+        };
+
+        _context.ThanhToans.Add(dotThuMoi);
+
+        // Tự động trừ công nợ và cập nhật trạng thái Hóa đơn
+        decimal tongDaThuMoi = daTraTruocDo + soTienThu;
+        decimal conNoMoi = Math.Max(0, tongHoaDon - tongDaThuMoi);
+
+        if (conNoMoi == 0 && tongHoaDon > 0)
+        {
+            hoaDon.TrangThai = "Đã thanh toán";
+        }
+        else
+        {
+            hoaDon.TrangThai = "Thanh toán một phần";
+        }
+
+        _context.HoaDons.Update(hoaDon);
+        await _context.SaveChangesAsync();
+
+        TempData["ThongBao"] = $"Đã thu {soTienThu:N0}đ tiền mặt (Mã GD #{maThanhToan}). Số tiền còn nợ lại của hóa đơn: {conNoMoi:N0}đ.";
+        return RedirectToAction(nameof(Details), new { id = maHoaDon });
+    }
     // 6. XÓA MỀM HÓA ĐƠN (CHỈ CHO XÓA KHI CHƯA PHÁT SINH GIAO DỊCH THU TIỀN)
     [HttpPost]
     [ValidateAntiForgeryToken]
