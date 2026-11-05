@@ -15,7 +15,7 @@ public class HomeController : Controller
     {
         _context = context;
     }
-
+   
     // TRUNG TÂM ĐIỀU HÀNH TỔNG QUAN DÀNH CHO CHỦ TRỌ (5 ĐIỂM NHẤN)
     [HttpGet]
     public async Task<IActionResult> Index()
@@ -49,7 +49,7 @@ public class HomeController : Controller
             .Where(h => !string.IsNullOrWhiteSpace(h.MaPhong))
             .GroupBy(h => h.MaPhong!.Trim())
             .ToDictionary(g => g.Key, g => g.First());
-
+        //Khối Phòng
         ViewBag.TongPhong = tongPhong;
         ViewBag.PhongDangThue = phongDangThue;
         ViewBag.PhongTrong = phongTrong;
@@ -116,7 +116,7 @@ public class HomeController : Controller
         ViewBag.PhanTramXuatHoaDon = dsHopDongHieuLuc.Count > 0
             ? (int)Math.Min(100, Math.Round((double)soHoaDonThangNay / mucTieuPhongCanChot * 100))
             : 100;
-
+        //thang
         decimal phaiThuThangNay = hoaDonThangNay.Sum(h => h.TongTien ?? 0);
         decimal daThuCuaHoaDonThangNay = hoaDonThangNay.SelectMany(h => h.ThanhToans).Sum(t => t.SoTienTra);
         ViewBag.PhaiThuThangNay = phaiThuThangNay;
@@ -124,7 +124,7 @@ public class HomeController : Controller
         ViewBag.PhanTramThuTienThangNay = phaiThuThangNay > 0
             ? (int)Math.Min(100, Math.Round((daThuCuaHoaDonThangNay / phaiThuThangNay) * 100))
             : 0;
-
+        //all time
         decimal tongDoanhThuDaThu = dsHoaDon.SelectMany(h => h.ThanhToans).Sum(t => t.SoTienTra);
         decimal doanhThuThangNay = dsHoaDon
             .SelectMany(h => h.ThanhToans)
@@ -146,8 +146,8 @@ public class HomeController : Controller
         ViewBag.SoHoaDonConNo = dsHoaDonConNo.Count;
 
         // 5. DỮ LIỆU BIỂU ĐỒ 1: DOANH THU THỰC THU VS CÔNG NỢ 6 THÁNG GẦN NHẤT
-        var labels6Thang = new List<string>();
-        var dataThucThu6Thang = new List<decimal>();
+        var labels6Thang = new List<string>();//truc x
+        var dataThucThu6Thang = new List<decimal>();//truc y
         var dataCongNo6Thang = new List<decimal>();
 
         for (int i = 5; i >= 0; i--)
@@ -170,28 +170,28 @@ public class HomeController : Controller
         ViewBag.ChartThucThu6Thang = JsonSerializer.Serialize(dataThucThu6Thang);
         ViewBag.ChartCongNo6Thang = JsonSerializer.Serialize(dataCongNo6Thang);
 
-        // 6. DỮ LIỆU BIỂU ĐỒ 2: CƠ CẤU NGUỒN THU (TIỀN PHÒNG, ĐIỆN, NƯỚC, DỊCH VỤ KHÁC)
-        var allChiTiet = dsHoaDon.SelectMany(h => h.ChiTietHoaDons).ToList();
-        decimal tongTienDien = allChiTiet
-            .Where(c => c.MaDichVu != null && c.MaDichVu.Trim().Equals("DV_DIEN", StringComparison.OrdinalIgnoreCase))
-            .Sum(c => c.ThanhTien);
-        decimal tongTienNuoc = allChiTiet
-            .Where(c => c.MaDichVu != null && c.MaDichVu.Trim().Equals("DV_NUOC", StringComparison.OrdinalIgnoreCase))
-            .Sum(c => c.ThanhTien);
-        decimal tongDichVuCoDinh = allChiTiet
-            .Where(c => c.MaDichVu != null
-                     && !c.MaDichVu.Trim().Equals("DV_DIEN", StringComparison.OrdinalIgnoreCase)
-                     && !c.MaDichVu.Trim().Equals("DV_NUOC", StringComparison.OrdinalIgnoreCase))
-            .Sum(c => c.ThanhTien);
-        decimal tongTienPhongCung = Math.Max(0, dsHoaDon.Sum(h => h.TongTien ?? 0) - (tongTienDien + tongTienNuoc + tongDichVuCoDinh));
+        //// 6. DỮ LIỆU BIỂU ĐỒ 2: CƠ CẤU NGUỒN THU (TIỀN PHÒNG, ĐIỆN, NƯỚC, DỊCH VỤ KHÁC)
+        //var allChiTiet = dsHoaDon.SelectMany(h => h.ChiTietHoaDons).ToList();
+        //decimal tongTienDien = allChiTiet
+        //    .Where(c => c.MaDichVu != null && c.MaDichVu.Trim().Equals("DV_DIEN", StringComparison.OrdinalIgnoreCase))
+        //    .Sum(c => c.ThanhTien);
+        //decimal tongTienNuoc = allChiTiet
+        //    .Where(c => c.MaDichVu != null && c.MaDichVu.Trim().Equals("DV_NUOC", StringComparison.OrdinalIgnoreCase))
+        //    .Sum(c => c.ThanhTien);
+        //decimal tongDichVuCoDinh = allChiTiet
+        //    .Where(c => c.MaDichVu != null
+        //             && !c.MaDichVu.Trim().Equals("DV_DIEN", StringComparison.OrdinalIgnoreCase)
+        //             && !c.MaDichVu.Trim().Equals("DV_NUOC", StringComparison.OrdinalIgnoreCase))
+        //    .Sum(c => c.ThanhTien);
+        //decimal tongTienPhongCung = Math.Max(0, dsHoaDon.Sum(h => h.TongTien ?? 0) - (tongTienDien + tongTienNuoc + tongDichVuCoDinh));
 
-        ViewBag.ChartCoCauData = JsonSerializer.Serialize(new[]
-        {
-            tongTienPhongCung,
-            tongTienDien,
-            tongTienNuoc,
-            tongDichVuCoDinh
-        });
+        //ViewBag.ChartCoCauData = JsonSerializer.Serialize(new[]
+        //{
+        //    tongTienPhongCung,
+        //    tongTienDien,
+        //    tongTienNuoc,
+        //    tongDichVuCoDinh
+        //});
 
         // 7. TIMELINE GIAO DỊCH THU TIỀN VỪA PHÁT SINH
         var giaoDichMoiNhat = await _context.ThanhToans

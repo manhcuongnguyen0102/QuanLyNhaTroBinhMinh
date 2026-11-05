@@ -57,7 +57,7 @@ public class ChiSoDienNuocController : Controller
         return View(danhSach);
     }
 
-    // 2. API JSON: TỰ ĐỘNG TRA CỨU CHỈ SỐ MỚI CỦA KỲ TRƯỚC ĐỂ ĐIỀN VÀO CHỈ SỐ CŨ KỲ NÀY
+    // 2.  TỰ ĐỘNG TRA CỨU CHỈ SỐ MỚI CỦA KỲ TRƯỚC ĐỂ ĐIỀN VÀO CHỈ SỐ CŨ KỲ NÀY
     [HttpGet]
     public async Task<IActionResult> LayChiSoCu(string maPhong, int thang, int nam)
     {

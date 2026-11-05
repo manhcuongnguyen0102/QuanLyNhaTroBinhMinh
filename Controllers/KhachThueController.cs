@@ -24,7 +24,7 @@ public class KhachThueController : Controller
         if (string.IsNullOrWhiteSpace(maNguoiDung))
             return RedirectToAction("Login", "Account");
 
-        // CHỐT CHẶN BUG-05: Kiểm tra thời gian thực xem tài khoản có vừa bị Chủ trọ khóa không
+        //  Kiểm tra thời gian thực xem tài khoản có vừa bị Chủ trọ khóa không
         var taiKhoanHienTai = await _context.NguoiDungs
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.MaNguoiDung == maNguoiDung);

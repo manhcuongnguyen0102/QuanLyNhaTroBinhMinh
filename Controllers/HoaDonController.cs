@@ -126,7 +126,7 @@ public class HoaDonController : Controller
         return View();
     }
 
-    // 4. THUẬT TOÁN TỰ ĐỘNG TÍNH TIỀN & XUẤT HÓA ĐƠN (POST - PHƯƠNG ÁN A)
+    // 4. THUẬT TOÁN TỰ ĐỘNG TÍNH TIỀN & XUẤT HÓA ĐƠN 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(string? maHopDong, int thang, int nam)

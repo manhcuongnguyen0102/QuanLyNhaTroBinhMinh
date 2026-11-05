@@ -15,7 +15,7 @@ public class HopDongController : Controller
         _context = context;
     }
 
-    // 1. DANH SÁCH HỢP ĐỒNG (ƯU TIÊN "HIỆU LỰC" LÊN ĐẦU, ĐẨY "ĐÃ THANH LÝ" XUỐNG ĐÁY)
+    // 1. DANH SÁCH HỢP ĐỒNG 
     [HttpGet]
     public async Task<IActionResult> Index(string? trangThai, string? tuKhoa)
     {
@@ -402,10 +402,12 @@ public class HopDongController : Controller
 
         var users = await _context.NguoiDungs
             .AsNoTracking()
-            .Where(u => u.TrangThai != "Khóa")
+            .Where(u => u.TrangThai != "Khóa" && !_context.HopDongs.Any(h=>h.MaNguoiDungDaiDien==u.MaNguoiDung
+                                                                        && h.TrangThai =="Hiệu lực"
+                                                                        && h.MaNguoiDungDaiDien!=selectedNguoiDung))
             .OrderBy(u => u.TenDangNhap)
             .Select(u => new
-            {
+            { 
                 u.MaNguoiDung,
                 HienThi = $"{u.TenDangNhap} (Mã: {u.MaNguoiDung})"
             }).ToListAsync();

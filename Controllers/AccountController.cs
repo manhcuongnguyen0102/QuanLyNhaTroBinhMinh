@@ -30,6 +30,7 @@ public class AccountController : Controller
 
             return RedirectToAction("Index", "Home");
         }
+        
 
         return View();
     }
@@ -74,7 +75,7 @@ public class AccountController : Controller
             new Claim(ClaimTypes.Role, maVaiTro),
             new Claim("TenVaiTro", tenVaiTro)
         };
-
+        //Mã hóa tránh f12
         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
@@ -92,12 +93,13 @@ public class AccountController : Controller
     // 3. ĐĂNG XUẤT KHỎI HỆ THỐNG
     [HttpPost]
     [ValidateAntiForgeryToken]
+    //tránh bị click vào link lạ để ép đăng xuất)
     public async Task<IActionResult> Logout()
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return RedirectToAction(nameof(Login));
     }
-
+    
     [HttpGet]
     [ActionName("Logout")]
     public async Task<IActionResult> LogoutGet()
@@ -137,7 +139,7 @@ public class AccountController : Controller
             await _context.SaveChangesAsync();
             TempData["ThongBao"] = "Đã đổi mật khẩu đăng nhập thành công!";
         }
-
+        //đưa người dùng về trang hiện tại và chặn url ko từ web
         if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
             return Redirect(returnUrl);
 

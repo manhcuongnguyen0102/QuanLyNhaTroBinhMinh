@@ -9,11 +9,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Đăng nhập — Hệ thống Quản lý Nhà trọ Bình Minh</title>
-    
-    <!-- FontAwesome Icons -->
+
     <link href="~/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
 
-    <!-- BỘ FONT CHUẨN TIẾNG VIỆT 100% (Be Vietnam Pro + Playfair Display) - KHÔNG BAO GIỜ LỖI DẤU -->
+   
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
@@ -32,7 +31,7 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* NỀN CHIA ĐÔI 2 SẮC ĐỘ XÁM ẤM ĐÚNG CHUẨN MẪU DESIGN MERCEDES */
+        
         .luxury-page-wrapper {
             min-height: 100vh;
             width: 100%;
@@ -43,7 +42,7 @@
             padding: 2rem;
         }
 
-        /* THẺ CHÍNH (BO GÓC MỀM 14PX & ĐỔ BÓNG SÂU SANG TRỌNG) */
+
         .luxury-split-card {
             width: 100%;
             max-width: 920px;
@@ -56,12 +55,10 @@
             overflow: hidden;
         }
 
-        /* ==========================================
-                   CỘT TRÁI: ARCHITECTURAL BRAND SHOWCASE
-                   ========================================== */
+       
         .luxury-left-panel {
             position: relative;
-            /* Ảnh nền kiến trúc tòa nhà căn hộ hiện đại kèm lớp phủ Dark Charcoal */
+            
             background-image: linear-gradient(165deg, rgba(31, 41, 55, 0.86) 0%, rgba(17, 24, 39, 0.94) 100%), url('https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1000&q=80');
             background-size: cover;
             background-position: center;
@@ -101,7 +98,7 @@
                 color: #FFFFFF;
             }
 
-        /* Chữ "Bình Minh" dùng phông Serif sang trọng như chữ "Mercedes" */
+       
         .brand-serif-title {
             font-family: 'Playfair Display', Georgia, serif;
             font-size: 2.2rem;
@@ -111,7 +108,7 @@
             margin-bottom: 1.5rem;
         }
 
-        /* Đường kẻ ngang mảnh tinh tế */
+      
         .brand-divider {
             width: 100%;
             height: 1px;
@@ -119,7 +116,6 @@
             margin-bottom: 1.65rem;
         }
 
-        /* Cụm chữ căn phải giống "Owners Questionnaire" */
         .brand-portal-type {
             text-align: right;
             line-height: 1.3;
@@ -142,7 +138,7 @@
                 margin-top: 2px;
             }
 
-        /* Dòng liên hệ nhỏ ở đáy cột trái */
+      
         .left-Bottom-contact {
             font-size: 0.78rem;
             font-weight: 400;
@@ -150,9 +146,6 @@
             letter-spacing: 0.03em;
         }
 
-        /* ==========================================
-                   CỘT PHẢI: MINIMALIST PILL FORM
-                   ========================================== */
         .luxury-right-panel {
             background-color: #FFFFFF;
             padding: 3.5rem 4.25rem 2.25rem 4.25rem;
@@ -176,7 +169,7 @@
             margin-bottom: 2.1rem;
         }
 
-        /* Ô nhập liệu bo tròn hình viên thuốc (Pill Input) chuẩn mẫu */
+        
         .pill-input-wrapper {
             position: relative;
             margin-bottom: 1.15rem;
@@ -212,7 +205,7 @@
                 box-shadow: 0 6px 20px rgba(17, 24, 39, 0.07);
             }
 
-        /* Icon nằm bên phải trong ô viên thuốc */
+    
         .pill-trailing-icon {
             position: absolute;
             top: 50%;
@@ -262,7 +255,7 @@
                 box-shadow: 0 14px 24px -5px rgba(5, 150, 105, 0.5);
             }
 
-        /* Hộp báo lỗi nhỏ gọn tinh tế */
+       
         .luxury-error-alert {
             background-color: #FEF2F2;
             border: 1px solid #FCA5A5;
@@ -277,7 +270,7 @@
             gap: 0.5rem;
         }
 
-        /* Dòng ghi chú tối giản ở đáy cột phải giống "Forgot your login? • Privacy Policy" */
+     
         .right-bottom-links {
             font-size: 0.76rem;
             color: #9CA3AF;
@@ -311,7 +304,7 @@
     <div class="luxury-page-wrapper">
         <div class="luxury-split-card">
 
-            <!-- CỘT TRÁI: THIẾT KẾ THEO MẪU MERCEDES NHƯNG MANG BẢN SẮC NHÀ TRỌ BÌNH MINH -->
+          
             <div class="luxury-left-panel">
                 <div></div> <!-- Khoảng đệm cân bằng -->
 
@@ -353,7 +346,7 @@
                     }
 
                     <form asp-controller="Account" asp-action="Login" method="post">
-                        <!-- Ô Tên đăng nhập dáng viên thuốc -->
+                        <!-- Ô Tên đăng nhập  -->
                         <div class="pill-input-wrapper">
                             <input type="text" name="tenDangNhap" class="pill-input"
                                    placeholder="TÊN ĐĂNG NHẬP" autocomplete="username" required autofocus />
@@ -362,7 +355,7 @@
                             </span>
                         </div>
 
-                        <!-- Ô Mật khẩu dáng viên thuốc -->
+                        <!-- Ô Mật khẩu  -->
                         <div class="pill-input-wrapper">
                             <input type="password" name="matKhau" id="inputPass" class="pill-input"
                                    placeholder="MẬT KHẨU" autocomplete="current-password" required />
@@ -371,7 +364,7 @@
                             </button>
                         </div>
 
-                        <!-- Nút Đăng nhập viên thuốc -->
+                        <!-- Nút Đăng nhập -->
                         <button type="submit" class="btn-pill-login">
                             <span>ĐĂNG NHẬP</span>
                             <i class="fas fa-arrow-right"></i>
@@ -379,7 +372,7 @@
                     </form>
                 </div>
 
-                <!-- Ghi chú nhỏ gọn ở đáy giống mẫu tham khảo -->
+                <!-- Ghi chú  -->
                 <div class="right-bottom-links">
                     
                     <span class="muted-text">Nếu có vấn đề với tài khoản đăng nhập, hãy liên hệ chủ trọ</span>
